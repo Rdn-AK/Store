@@ -1,0 +1,601 @@
+<!DOCTYPE html>
+<html lang="id" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RDNSTORE | Premium Secondhand Tech</title>
+    
+    <!-- Google Fonts: Plus Jakarta Sans & Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- GSAP for Animations -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+
+    <!-- Tailwind Configuration -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        jakarta: ['"Plus Jakarta Sans"', 'sans-serif'],
+                        inter: ['Inter', 'sans-serif'],
+                    },
+                    colors: {
+                        deepnavy: '#070c19',
+                        rdncyan: '#00f2fe',
+                        rdnblue: '#4facfe',
+                        rdnindigo: '#667eea',
+                    },
+                    backgroundImage: {
+                        'cyber-gradient': 'linear-gradient(to right, #4facfe 0%, #00f2fe 100%)',
+                    }
+                }
+            }
+        }
+    </script>
+
+    <!-- Custom CSS for Glassmorphism & Scrollbar -->
+    <style>
+        body {
+            background-color: #070c19;
+            color: #e2e8f0;
+            overflow-x: hidden;
+            -webkit-tap-highlight-color: transparent; /* Hilangkan blok biru saat disentuh di HP */
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #070c19; }
+        ::-webkit-scrollbar-thumb { background: #1e293b; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #4facfe; }
+
+        /* Glassmorphism Utilities */
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        .glass-nav {
+            background: rgba(7, 12, 25, 0.85);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        /* Abstract Glow Backgrounds */
+        .glow-orb {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(90px);
+            opacity: 0.35;
+            z-index: -1;
+            pointer-events: none;
+        }
+        .glow-orb-1 { width: 300px; height: 300px; background: #4facfe; top: -5%; left: -10%; }
+        .glow-orb-2 { width: 250px; height: 250px; background: #667eea; top: 30%; right: -5%; }
+        .glow-orb-3 { width: 400px; height: 400px; background: #00f2fe; bottom: 0%; left: 10%; opacity: 0.2; }
+
+        /* Image Hover Effect */
+        .gallery-img-container {
+            overflow: hidden;
+            cursor: pointer;
+            position: relative;
+            border-radius: 0.75rem;
+        }
+        .gallery-img-container img {
+            transition: transform 0.5s ease;
+        }
+        .gallery-img-container:hover img {
+            transform: scale(1.1);
+        }
+
+        /* View Transition Animation (SPA Effect) */
+        .fade-enter {
+            animation: fadeIn 0.4s ease-out forwards;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(15px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body class="font-inter antialiased relative selection:bg-rdncyan selection:text-deepnavy">
+
+    <!-- Ambient Background -->
+    <div class="glow-orb glow-orb-1"></div>
+    <div class="glow-orb glow-orb-2"></div>
+    <div class="glow-orb glow-orb-3"></div>
+
+    <!-- Navigation -->
+    <nav class="fixed w-full z-50 glass-nav transition-all duration-300 py-3 sm:py-4" id="navbar">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex justify-between items-center relative">
+            <div class="flex items-center cursor-pointer" onclick="showHome()">
+                <span class="font-jakarta font-bold text-xl sm:text-2xl tracking-tighter text-white z-50 relative">
+                    RDN<span class="bg-clip-text text-transparent bg-cyber-gradient">STORE</span>
+                </span>
+            </div>
+            
+            <!-- Desktop Menu -->
+            <div class="hidden md:flex space-x-8 items-center">
+                <button onclick="showHome()" class="text-sm font-medium text-gray-300 hover:text-white transition-colors">Beranda</button>
+                <button onclick="showHome()" class="text-sm font-medium text-gray-300 hover:text-white transition-colors">Katalog</button>
+            </div>
+
+            <!-- Mobile Menu Button -->
+            <button id="mobileMenuBtn" class="md:hidden text-white z-50 relative p-2 focus:outline-none">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path id="menuIcon" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
+            </button>
+        </div>
+
+        <!-- Mobile Menu Overlay -->
+        <div id="mobileMenu" class="fixed inset-0 bg-[#070c19]/95 backdrop-blur-xl z-40 flex flex-col justify-center items-center opacity-0 pointer-events-none transition-opacity duration-300 md:hidden">
+            <div class="flex flex-col items-center space-y-8 w-full px-6">
+                <button onclick="showHome(); toggleMenu();" class="text-xl font-medium text-gray-300 hover:text-white transition-colors">Beranda</button>
+                <button onclick="showHome(); toggleMenu();" class="text-xl font-medium text-gray-300 hover:text-white transition-colors">Katalog Produk</button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- MAIN CONTAINER (SPA Wrapper) -->
+    <main class="min-h-screen">
+        
+        <!-- ========================================== -->
+        <!-- VIEW 1: HOME & CATALOG (E-COMMERCE STYLE) -->
+        <!-- ========================================== -->
+        <div id="view-home" class="fade-enter block">
+            <!-- Hero Section -->
+            <section class="relative pt-24 pb-10 sm:pt-32 sm:pb-16 lg:pt-40 lg:pb-20 overflow-hidden px-4">
+                <div class="max-w-7xl mx-auto text-center relative z-10">
+                    <div class="inline-block px-3 py-1 rounded-full bg-rdncyan/10 text-rdncyan border border-rdncyan/20 text-xs sm:text-sm font-semibold mb-4 sm:mb-6">
+                        🚀 Tech Premium Bekas Kualitas Teratas
+                    </div>
+                    <h1 class="gsap-hero font-jakarta text-3xl sm:text-5xl md:text-6xl lg:text-7xl font-extrabold text-white mb-4 sm:mb-6 tracking-tight leading-tight">
+                        Temukan Perangkat <br class="hidden sm:block">
+                        <span class="bg-clip-text text-transparent bg-cyber-gradient">Impian Anda.</span>
+                    </h1>
+                    <p class="gsap-hero font-inter text-sm sm:text-base md:text-lg text-gray-400 max-w-2xl mx-auto mb-8 sm:mb-10 leading-relaxed">
+                        Kami menyajikan laptop & PC secondhand pilihan dengan transparansi kondisi 100%. Mulus, fungsional, dan siap pakai.
+                    </p>
+                </div>
+            </section>
+
+            <!-- Product Catalog Grid -->
+            <section class="pb-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
+                <div class="flex items-center justify-between mb-6 sm:mb-8 border-b border-white/10 pb-4">
+                    <h2 class="font-jakarta text-xl sm:text-2xl font-bold text-white">Katalog Produk Terbaru</h2>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
+                    
+                    <!-- Product Card 1: Laptop -->
+                    <div onclick="showDetail('laptop')" class="glass-panel rounded-2xl overflow-hidden cursor-pointer group hover:border-rdncyan/50 transition-all duration-300 hover:-translate-y-2 flex flex-col h-full">
+                        <div class="relative h-56 overflow-hidden">
+                            <img src="Tampak%20Depan.jpeg" alt="ASUS Vivobook" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500">
+                            <div class="absolute top-3 left-3 px-2 py-1 bg-black/60 backdrop-blur-md rounded text-xs font-bold text-white border border-white/10">
+                                Mulus 95%
+                            </div>
+                        </div>
+                        <div class="p-5 flex-grow flex flex-col justify-between">
+                            <div>
+                                <p class="text-xs text-rdncyan font-semibold mb-1">Laptop Premium</p>
+                                <h3 class="font-jakarta text-lg sm:text-xl font-bold text-white mb-2 leading-tight">ASUS Vivobook M1403QA</h3>
+                                <div class="flex flex-wrap gap-2 mb-4">
+                                    <span class="text-xs px-2 py-1 bg-white/5 rounded text-gray-300">Ryzen 5</span>
+                                    <span class="text-xs px-2 py-1 bg-white/5 rounded text-gray-300">24GB RAM</span>
+                                    <span class="text-xs px-2 py-1 bg-white/5 rounded text-gray-300">512GB SSD</span>
+                                </div>
+                            </div>
+                            <div class="flex items-end justify-between mt-4">
+                                <div>
+                                    <p class="font-jakarta text-lg sm:text-xl font-bold text-white">Rp 5.499.000</p>
+                                </div>
+                                <button class="w-8 h-8 rounded-full bg-rdncyan text-deepnavy flex items-center justify-center group-hover:bg-white transition-colors">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Product Card 2: PC -->
+                    <div onclick="showDetail('pc')" class="glass-panel rounded-2xl overflow-hidden cursor-pointer group hover:border-purple-500/50 transition-all duration-300 hover:-translate-y-2 flex flex-col h-full">
+                        <div class="relative h-56 overflow-hidden">
+                            <img src="https://placehold.co/800x600/0f172a/8b5cf6?text=PC+Gaming+Setup" alt="PC Gaming" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500">
+                            <div class="absolute top-3 left-3 px-2 py-1 bg-red-500/80 backdrop-blur-md rounded text-xs font-bold text-white border border-white/10">
+                                Diskon Besar
+                            </div>
+                        </div>
+                        <div class="p-5 flex-grow flex flex-col justify-between">
+                            <div>
+                                <p class="text-xs text-purple-400 font-semibold mb-1">Desktop Gaming</p>
+                                <h3 class="font-jakarta text-lg sm:text-xl font-bold text-white mb-2 leading-tight">Custom PC Gaming eSports & AAA</h3>
+                                <div class="flex flex-wrap gap-2 mb-4">
+                                    <span class="text-xs px-2 py-1 bg-white/5 rounded text-gray-300">GTX 1650S</span>
+                                    <span class="text-xs px-2 py-1 bg-white/5 rounded text-gray-300">32GB RAM</span>
+                                </div>
+                            </div>
+                            <div class="flex items-end justify-between mt-4">
+                                <div>
+                                    <p class="text-xs text-gray-500 line-through decoration-red-500">Rp 10.850.000</p>
+                                    <p class="font-jakarta text-lg sm:text-xl font-bold text-white">Rp 7.000.000</p>
+                                </div>
+                                <button class="w-8 h-8 rounded-full bg-purple-400 text-deepnavy flex items-center justify-center group-hover:bg-white transition-colors">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </section>
+        </div>
+
+
+        <!-- ========================================== -->
+        <!-- VIEW 2: PRODUCT DETAIL PAGE                -->
+        <!-- ========================================== -->
+        <div id="view-detail" class="hidden pt-20 sm:pt-28 pb-10 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto fade-enter">
+            
+            <!-- Back Button -->
+            <button onclick="showHome()" class="flex items-center text-gray-400 hover:text-white mb-6 sm:mb-8 transition-colors text-sm sm:text-base group bg-white/5 px-4 py-2 rounded-full border border-white/10 hover:bg-white/10 w-fit">
+                <svg class="w-4 h-4 mr-2 transform group-hover:-translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
+                Kembali ke Beranda
+            </button>
+
+            <!-- PRODUCT 1 DETAIL (LAPTOP) -->
+            <div id="detail-laptop" class="hidden">
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12">
+                    <!-- Images -->
+                    <div class="space-y-3 sm:space-y-4">
+                        <div class="glass-panel rounded-2xl p-2 sm:p-3">
+                            <button type="button" class="w-full h-[250px] sm:h-[350px] md:h-[450px] rounded-xl overflow-hidden relative group block" onclick="openModal('Tampak%20Depan.jpeg', 'Tampak Depan', 'Bagian depan laptop terlihat rapi, layar bersih, dan bodi masih dalam kondisi prima.')">
+                                <img src="Tampak%20Depan.jpeg" alt="Tampak Depan ASUS Vivobook" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105">
+                                <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-transparent"></div>
+                                <div class="absolute bottom-4 left-4 rounded-full bg-black/60 px-3 py-1 text-xs font-semibold text-white backdrop-blur-sm">Klik untuk lihat detail</div>
+                            </button>
+                        </div>
+                        <div class="grid grid-cols-2 sm:grid-cols-2 xl:grid-cols-4 gap-2 sm:gap-3">
+                            <button type="button" class="gallery-img-container h-24 sm:h-28 rounded-xl border border-white/10 bg-white/5 hover:border-rdncyan/60" onclick="openModal('Tampak%20Belakang.jpeg', 'Tampak Belakang', 'Bagian belakang laptop tampil bersih dan minimalis, cocok untuk tampilan premium.')">
+                                <img src="Tampak%20Belakang.jpeg" alt="Tampak Belakang ASUS Vivobook" class="w-full h-full object-cover">
+                                <span class="absolute bottom-2 left-2 rounded-full bg-black/60 px-2 py-1 text-[10px] font-semibold text-white">Belakang</span>
+                            </button>
+                            <button type="button" class="gallery-img-container h-24 sm:h-28 rounded-xl border border-white/10 bg-white/5 hover:border-rdncyan/60" onclick="openModal('Tampak%20Keyboard.jpeg', 'Tampak Keyboard', 'Keyboard terasa nyaman dipakai dan tombol-tombol berfungsi dengan baik.')">
+                                <img src="Tampak%20Keyboard.jpeg" alt="Tampak Keyboard ASUS Vivobook" class="w-full h-full object-cover">
+                                <span class="absolute bottom-2 left-2 rounded-full bg-black/60 px-2 py-1 text-[10px] font-semibold text-white">Keyboard</span>
+                            </button>
+                            <button type="button" class="gallery-img-container h-24 sm:h-28 rounded-xl border border-white/10 bg-white/5 hover:border-rdncyan/60" onclick="openModal('Tampak%20Samping%20Kanan.jpeg', 'Tampak Samping Kanan', 'Sisi kanan laptop terlihat rapi dan tidak ada cacat fisik yang mencolok.')">
+                                <img src="Tampak%20Samping%20Kanan.jpeg" alt="Tampak Samping Kanan ASUS Vivobook" class="w-full h-full object-cover">
+                                <span class="absolute bottom-2 left-2 rounded-full bg-black/60 px-2 py-1 text-[10px] font-semibold text-white">Kanan</span>
+                            </button>
+                            <button type="button" class="gallery-img-container h-24 sm:h-28 rounded-xl border border-white/10 bg-white/5 hover:border-rdncyan/60" onclick="openModal('Tampak%20Samping%20Kiri.jpeg', 'Tampak Samping Kiri', 'Sisi kiri laptop pun masih terlihat bersih dan dalam kondisi baik.')">
+                                <img src="Tampak%20Samping%20Kiri.jpeg" alt="Tampak Samping Kiri ASUS Vivobook" class="w-full h-full object-cover">
+                                <span class="absolute bottom-2 left-2 rounded-full bg-black/60 px-2 py-1 text-[10px] font-semibold text-white">Kiri</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Info -->
+                    <div class="flex flex-col">
+                        <div class="inline-block px-3 py-1 rounded-full bg-rdnindigo/20 text-rdnindigo border border-rdnindigo/30 text-[10px] sm:text-xs font-bold tracking-wider uppercase mb-3 w-fit">
+                            Premium Secondhand
+                        </div>
+                        <h2 class="font-jakarta text-2xl sm:text-3xl md:text-4xl font-bold text-white mb-2">ASUS Vivobook M1403QA</h2>
+                        <p class="text-sm sm:text-base text-gray-400 mb-6 font-medium">Quiet Blue (Biru Tua Metalik)</p>
+
+                        <div class="p-4 sm:p-6 rounded-2xl bg-white/5 border border-white/10 mb-8 flex flex-col sm:flex-row justify-between sm:items-center gap-4">
+                            <div>
+                                <p class="text-xs sm:text-sm text-gray-400 mb-1">Harga Nett</p>
+                                <p class="font-jakarta text-2xl sm:text-3xl md:text-4xl font-bold text-transparent bg-clip-text bg-cyber-gradient">Rp 5.499.000</p>
+                            </div>
+                            <button onclick="scrollToForm('ASUS Vivobook M1403QA')" class="w-full sm:w-auto text-center px-8 py-3.5 rounded-xl bg-cyber-gradient text-white font-bold hover:shadow-[0_0_20px_rgba(79,172,254,0.4)] transition-all active:scale-95">
+                                Beli Sekarang
+                            </button>
+                        </div>
+
+                        <div class="space-y-6">
+                            <div>
+                                <h3 class="text-lg sm:text-xl font-semibold text-white mb-3 border-b border-white/10 pb-2 flex items-center">
+                                    <svg class="w-5 h-5 mr-2 text-rdncyan" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z"></path></svg>
+                                    Spesifikasi Utama
+                                </h3>
+                                <ul class="text-gray-300 text-sm sm:text-base space-y-2">
+                                    <li><strong class="text-white">Prosesor:</strong> AMD Ryzen™ 5 5600H (6C/12T, up to 4.2GHz)</li>
+                                    <li><strong class="text-white">RAM:</strong> <span class="text-rdncyan font-semibold">24 GB DDR4 Dual Channel</span> (V-Gen 16GB + Samsung 8GB)</li>
+                                    <li><strong class="text-white">Grafis:</strong> AMD Radeon RX Vega 7</li>
+                                    <li><strong class="text-white">Penyimpanan:</strong> INTEL SSD PEKNUS 512 GB NVMe PCIe</li>
+                                </ul>
+                            </div>
+                            <div>
+                                <h3 class="text-lg sm:text-xl font-semibold text-white mb-3 border-b border-white/10 pb-2 flex items-center">
+                                    <svg class="w-5 h-5 mr-2 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                                    Kondisi Riil Unit
+                                </h3>
+                                <ul class="text-gray-300 text-sm sm:text-base space-y-2 list-disc list-inside">
+                                    <li>Fisik mulus 95% (minim bekas pemakaian, no penyok).</li>
+                                    <li>Fungsi normal 100% (Wi-Fi, BT, Webcam, Speaker).</li>
+                                    <li>Kesehatan baterai prima (awet 3-5 jam).</li>
+                                    <li>Layar jernih (Anti-glare, bebas white spot).</li>
+                                </ul>
+                                <p class="text-xs sm:text-sm text-gray-500 mt-3">*Kelengkapan: Unit, Charger Original, Bonus Tas Jinjing Premium.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- PRODUCT 2 DETAIL (PC GAMING) -->
+            <div id="detail-pc" class="hidden">
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12">
+                    <!-- Images -->
+                    <div class="space-y-3 sm:space-y-4">
+                        <div class="w-full h-[250px] sm:h-[350px] md:h-[450px] rounded-2xl overflow-hidden glass-panel relative">
+                            <img src="https://placehold.co/800x600/0f172a/8b5cf6?text=PC+Gaming+Setup" alt="PC Gaming Main" class="w-full h-full object-cover">
+                        </div>
+                        <div class="grid grid-cols-4 gap-2 sm:gap-3">
+                            <div class="gallery-img-container h-16 sm:h-20 md:h-24" onclick="openModal('https://placehold.co/800x600/0f172a/ffffff?text=Tampak+Samping+Case')">
+                                <img src="https://placehold.co/200x200/0f172a/ffffff?text=Case" alt="Thumb" class="w-full h-full object-cover">
+                            </div>
+                            <div class="gallery-img-container h-16 sm:h-20 md:h-24" onclick="openModal('https://placehold.co/800x600/0f172a/ffffff?text=Interior+Komponen')">
+                                <img src="https://placehold.co/200x200/0f172a/ffffff?text=Interior" alt="Thumb" class="w-full h-full object-cover">
+                            </div>
+                            <div class="gallery-img-container h-16 sm:h-20 md:h-24" onclick="openModal('https://placehold.co/800x600/0f172a/ffffff?text=Info+Sistem+Win11')">
+                                <img src="https://placehold.co/200x200/0f172a/ffffff?text=SysInfo" alt="Thumb" class="w-full h-full object-cover">
+                            </div>
+                            <div class="gallery-img-container h-16 sm:h-20 md:h-24 flex items-center justify-center bg-white/5 rounded-xl border border-white/10 hover:bg-white/10" onclick="alert('Membuka foto lainnya.')">
+                                <span class="text-xs sm:text-sm font-medium text-purple-400">+ Foto Lain</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Info -->
+                    <div class="flex flex-col">
+                        <div class="inline-block px-3 py-1 rounded-full bg-red-500/20 text-red-400 border border-red-500/30 text-[10px] sm:text-xs font-bold tracking-wider uppercase mb-3 w-fit">
+                            Huge Discount
+                        </div>
+                        <h2 class="font-jakarta text-2xl sm:text-3xl md:text-4xl font-bold text-white mb-2">Custom PC Gaming</h2>
+                        <p class="text-sm sm:text-base text-gray-400 mb-6 font-medium">Siap Libas Game eSports & AAA</p>
+
+                        <div class="p-4 sm:p-6 rounded-2xl bg-white/5 border border-white/10 mb-8 flex flex-col sm:flex-row justify-between sm:items-center gap-4">
+                            <div>
+                                <p class="text-xs sm:text-sm text-gray-500 mb-1 line-through decoration-red-500">Rp 10.850.000</p>
+                                <p class="font-jakarta text-2xl sm:text-3xl md:text-4xl font-bold text-white">Rp 7.000.000</p>
+                            </div>
+                            <button onclick="scrollToForm('Custom PC Gaming')" class="w-full sm:w-auto text-center px-8 py-3.5 rounded-xl bg-white text-deepnavy font-bold hover:bg-gray-200 transition-colors shadow-[0_0_15px_rgba(255,255,255,0.2)] active:scale-95">
+                                Nego Sekarang
+                            </button>
+                        </div>
+
+                        <div class="space-y-6">
+                            <div>
+                                <h3 class="text-lg sm:text-xl font-semibold text-white mb-3 border-b border-white/10 pb-2 flex items-center">
+                                    <svg class="w-5 h-5 mr-2 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14M5 12a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v4a2 2 0 01-2 2M5 12a2 2 0 00-2 2v4a2 2 0 002 2h14a2 2 0 002-2v-4a2 2 0 00-2-2m-2-4h.01M17 16h.01"></path></svg>
+                                    Spesifikasi Lengkap
+                                </h3>
+                                <ul class="text-gray-300 text-sm sm:text-base space-y-2">
+                                    <li><strong class="text-white">Processor:</strong> AMD Ryzen 5 3500 (6C/6T @3.59 GHz)</li>
+                                    <li><strong class="text-white">VGA/GPU:</strong> GALAX GTX 1650 SUPER 4GB GDDR6</li>
+                                    <li><strong class="text-white">RAM:</strong> 32GB DDR4 (2x16GB Apacer Samsung Die)</li>
+                                    <li><strong class="text-white">Penyimpanan:</strong> 512GB NVMe M.2 ADATA (Health 98%)</li>
+                                    <li><strong class="text-white">Motherboard:</strong> Gigabyte B450M S2H AM4</li>
+                                    <li><strong class="text-white">PSU & Case:</strong> Seasonic 500W 80+ Bronze & Cube Gaming</li>
+                                    <li><strong class="text-white">OS & Ekstra:</strong> Windows 11 Pro, Wi-Fi + BT Vention</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Global Form (Muncul di bawah Detail) -->
+            <div id="nego-section" class="mt-16 sm:mt-24 max-w-3xl mx-auto pt-10 border-t border-white/10 scroll-mt-24">
+                <div class="glass-panel rounded-3xl p-5 sm:p-8 md:p-12 text-center shadow-2xl">
+                    <h2 class="font-jakarta text-2xl sm:text-3xl font-bold text-white mb-3">Tertarik? Mari Diskusi</h2>
+                    <p class="text-sm sm:text-base text-gray-400 mb-6 sm:mb-8">Isi formulir ini untuk terhubung langsung ke WhatsApp penjual dengan rapi.</p>
+
+                    <form id="waForm" class="space-y-4 sm:space-y-5 text-left">
+                        <div>
+                            <label class="block text-xs sm:text-sm font-medium text-gray-300 mb-1">Nama Lengkap</label>
+                            <input type="text" id="buyerName" required class="w-full bg-deepnavy/50 border border-white/10 rounded-xl px-4 py-3 sm:py-4 text-sm sm:text-base text-white focus:outline-none focus:border-rdncyan focus:ring-1 focus:ring-rdncyan transition-colors" placeholder="Masukkan nama Anda">
+                        </div>
+                        
+                        <div>
+                            <label class="block text-xs sm:text-sm font-medium text-gray-300 mb-1">Pilih Produk</label>
+                            <select id="selectedProduct" required class="w-full bg-deepnavy/50 border border-white/10 rounded-xl px-4 py-3 sm:py-4 text-sm sm:text-base text-white focus:outline-none focus:border-rdncyan focus:ring-1 focus:ring-rdncyan appearance-none">
+                                <option value="" disabled selected>Pilih unit yang diminati</option>
+                                <option value="ASUS Vivobook M1403QA">ASUS Vivobook M1403QA (Rp 5.499.000)</option>
+                                <option value="Custom PC Gaming">Custom PC Gaming (Rp 7.000.000)</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label class="block text-xs sm:text-sm font-medium text-gray-300 mb-1">Metode Transaksi</label>
+                            <select id="transactionMethod" required class="w-full bg-deepnavy/50 border border-white/10 rounded-xl px-4 py-3 sm:py-4 text-sm sm:text-base text-white focus:outline-none focus:border-rdncyan focus:ring-1 focus:ring-rdncyan appearance-none">
+                                <option value="" disabled selected>Pilih metode pengiriman/pertemuan</option>
+                                <option value="COD Cileungsi/Cibubur">COD Area Cileungsi / Cibubur</option>
+                                <option value="COD Jabodetabek">COD Jabodetabek (S&K Berlaku)</option>
+                                <option value="Rekber Tokopedia">Rekber Tokopedia</option>
+                                <option value="Rekber Shopee">Rekber Shopee</option>
+                                <option value="Gojek/Grab">Kirim via Gojek/Grab (Instan)</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label class="block text-xs sm:text-sm font-medium text-gray-300 mb-1">Tawaran Harga Nego (Opsional)</label>
+                            <input type="text" id="offerPrice" class="w-full bg-deepnavy/50 border border-white/10 rounded-xl px-4 py-3 sm:py-4 text-sm sm:text-base text-white focus:outline-none focus:border-rdncyan focus:ring-1 focus:ring-rdncyan transition-colors" placeholder="Cth: Rp 5.200.000">
+                        </div>
+
+                        <div>
+                            <label class="block text-xs sm:text-sm font-medium text-gray-300 mb-1">Catatan Tambahan</label>
+                            <textarea id="extraNotes" rows="3" class="w-full bg-deepnavy/50 border border-white/10 rounded-xl px-4 py-3 sm:py-4 text-sm sm:text-base text-white focus:outline-none focus:border-rdncyan focus:ring-1 focus:ring-rdncyan transition-colors" placeholder="Ada pertanyaan mengenai kondisi unit?"></textarea>
+                        </div>
+
+                        <button type="submit" class="w-full mt-6 py-4 rounded-xl bg-[#25D366] hover:bg-[#128C7E] text-white font-bold flex items-center justify-center space-x-2 transition-all hover:scale-[1.02] active:scale-95 shadow-[0_4px_15px_rgba(37,211,102,0.3)]">
+                            <svg class="w-5 h-5 sm:w-6 sm:h-6" fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51a12.8 12.8 0 0 0-.57-.01c-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413Z"/></svg>
+                            <span>Kirim via WhatsApp</span>
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+        </div>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="border-t border-white/10 bg-[#040812] py-8 text-center mt-auto">
+        <div class="max-w-7xl mx-auto px-4">
+            <span class="font-jakarta font-bold text-xl tracking-tighter text-white block mb-2">
+                RDN<span class="bg-clip-text text-transparent bg-cyber-gradient">STORE</span>
+            </span>
+            <p class="text-gray-500 text-sm mb-4">Transaksi Aman, Nyaman, dan Transparan.</p>
+            <div class="text-gray-400 text-sm mb-6 space-y-1">
+                <p>📍 Melayani COD: Cileungsi, Cibubur, dan Jabodetabek</p>
+                <p>👤 Penjual: <span class="font-semibold text-white">Raden Antasena Kartasasmita</span></p>
+            </div>
+            <p class="text-xs text-gray-600">&copy; 2024 RDNSTORE. All Rights Reserved.</p>
+        </div>
+    </footer>
+
+    <!-- Lightbox Modal -->
+    <div id="lightbox" class="fixed inset-0 z-[100] bg-black/95 hidden items-center justify-center opacity-0 transition-opacity duration-300 p-4">
+        <div class="relative w-full max-w-5xl">
+            <button onclick="closeModal()" class="absolute top-3 right-3 sm:top-4 sm:right-4 text-white hover:text-red-500 transition-colors p-2 bg-black/60 rounded-full z-10">
+                <svg class="w-6 h-6 sm:w-8 sm:h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+            </button>
+            <div class="rounded-2xl overflow-hidden glass-panel p-2 sm:p-4">
+                <img id="lightboxImg" src="" alt="Preview" class="w-full max-h-[75vh] object-contain rounded-xl shadow-2xl">
+                <div class="mt-4 text-center px-2 sm:px-4">
+                    <h3 id="lightboxTitle" class="text-lg sm:text-xl font-semibold text-white"></h3>
+                    <p id="lightboxDescription" class="text-sm sm:text-base text-gray-300 mt-2"></p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script>
+        // --- 1. GSAP Animations ---
+        gsap.from(".gsap-hero", {
+            y: 30,
+            opacity: 0,
+            duration: 1,
+            stagger: 0.2,
+            ease: "power3.out",
+            delay: 0.1
+        });
+
+        // --- 2. View Manager (SPA Logic) ---
+        function showDetail(productId) {
+            document.getElementById('view-home').classList.add('hidden');
+            document.getElementById('view-detail').classList.remove('hidden');
+            
+            document.getElementById('detail-laptop').classList.add('hidden');
+            document.getElementById('detail-pc').classList.add('hidden');
+            
+            document.getElementById('detail-' + productId).classList.remove('hidden');
+            
+            const select = document.getElementById('selectedProduct');
+            if(productId === 'laptop') select.value = 'ASUS Vivobook M1403QA';
+            if(productId === 'pc') select.value = 'Custom PC Gaming';
+
+            window.scrollTo({ top: 0, behavior: 'auto' });
+        }
+
+        function showHome() {
+            document.getElementById('view-detail').classList.add('hidden');
+            document.getElementById('view-home').classList.remove('hidden');
+            
+            window.scrollTo({ top: 0, behavior: 'auto' });
+        }
+
+        // Scroll ke form nego ketika klik tombol "Beli Sekarang"
+        function scrollToForm(productName) {
+            const formSection = document.getElementById('nego-section');
+            document.getElementById('selectedProduct').value = productName;
+            formSection.scrollIntoView({ behavior: 'smooth' });
+        }
+
+        // --- 3. Lightbox Logic ---
+        const lightbox = document.getElementById('lightbox');
+        const lightboxImg = document.getElementById('lightboxImg');
+
+        function openModal(imageSrc, title = 'Foto Produk', description = 'Detail gambar produk.') {
+            lightboxImg.src = imageSrc;
+            document.getElementById('lightboxTitle').textContent = title;
+            document.getElementById('lightboxDescription').textContent = description;
+            lightbox.classList.remove('hidden');
+            lightbox.classList.add('flex');
+            setTimeout(() => { lightbox.classList.remove('opacity-0'); }, 10);
+            document.body.style.overflow = 'hidden'; 
+        }
+
+        function closeModal() {
+            lightbox.classList.add('opacity-0');
+            setTimeout(() => {
+                lightbox.classList.add('hidden');
+                lightbox.classList.remove('flex');
+                lightboxImg.src = '';
+            }, 300);
+            document.body.style.overflow = 'auto';
+        }
+
+        lightbox.addEventListener('click', (e) => {
+            if (e.target === lightbox) closeModal();
+        });
+
+        // --- 4. WhatsApp Form Logic ---
+        document.getElementById('waForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const name = document.getElementById('buyerName').value;
+            const product = document.getElementById('selectedProduct').value;
+            const method = document.getElementById('transactionMethod').value;
+            const offer = document.getElementById('offerPrice').value || 'Sesuai Harga Tertera';
+            const notes = document.getElementById('extraNotes').value || 'Tidak ada catatan khusus.';
+            const phone = "6281385869226";
+
+            const message = `Halo Kang Raden, perkenalkan saya *${name}*.\n\nSaya tertarik dengan produk RDNSTORE yang ada di website:\n🛒 *Unit:* ${product}\n🤝 *Metode Transaksi:* ${method}\n💰 *Penawaran Harga:* ${offer}\n\n📝 *Catatan Tambahan:*\n_${notes}_\n\nApakah unit tersebut masih tersedia? Terima kasih.`;
+            
+            window.open(`https://wa.me/${phone}?text=${encodeURIComponent(message)}`, '_blank');
+        });
+
+        // --- 5. Mobile Menu Logic ---
+        const mobileMenuBtn = document.getElementById('mobileMenuBtn');
+        const mobileMenu = document.getElementById('mobileMenu');
+        const menuIcon = document.getElementById('menuIcon');
+        let isMenuOpen = false;
+
+        function toggleMenu() {
+            isMenuOpen = !isMenuOpen;
+            if (isMenuOpen) {
+                mobileMenu.classList.remove('opacity-0', 'pointer-events-none');
+                menuIcon.setAttribute('d', 'M6 18L18 6M6 6l12 12');
+                document.body.style.overflow = 'hidden';
+            } else {
+                mobileMenu.classList.add('opacity-0', 'pointer-events-none');
+                menuIcon.setAttribute('d', 'M4 6h16M4 12h16M4 18h16');
+                document.body.style.overflow = '';
+            }
+        }
+        mobileMenuBtn.addEventListener('click', toggleMenu);
+
+        // Navbar Glass effect
+        window.addEventListener('scroll', () => {
+            const nav = document.getElementById('navbar');
+            if (window.scrollY > 20) {
+                nav.classList.add('shadow-lg');
+                nav.style.background = 'rgba(7, 12, 25, 0.95)';
+            } else {
+                nav.classList.remove('shadow-lg');
+                nav.style.background = 'rgba(7, 12, 25, 0.85)';
+            }
+        });
+    </script>
+</body>
+</html>
