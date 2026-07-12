@@ -4,17 +4,21 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>RDNSTORE | Premium Secondhand Tech</title>
-    
+
     <!-- Google Fonts: Plus Jakarta Sans & Inter -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
-    
+
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    
+
     <!-- GSAP for Animations -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+
+    <!-- Icons (Lucide) & SweetAlert2 (dipakai oleh Panel Admin) -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     <!-- Tailwind Configuration -->
     <script>
@@ -105,413 +109,660 @@
             from { opacity: 0; transform: translateY(15px); }
             to { opacity: 1; transform: translateY(0); }
         }
+
+        .hide { display: none !important; }
+        .spinner { border: 3px solid rgba(255,255,255,0.1); border-radius: 50%; border-top-color: #00f2fe; width: 24px; height: 24px; animation: spin 1s ease-in-out infinite; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        .filter-btn.active { background: #ffffff; color: #070c19; }
     </style>
 </head>
 <body class="font-inter antialiased relative selection:bg-rdncyan selection:text-deepnavy">
+
+    <!-- GLOBAL LOADER -->
+    <div id="global-loader" class="fixed inset-0 bg-deepnavy z-[9999] flex flex-col items-center justify-center transition-opacity duration-300">
+        <div class="spinner w-12 h-12 mb-4"></div>
+        <p class="text-rdncyan font-jakarta animate-pulse text-sm">Menghubungkan ke Database...</p>
+    </div>
 
     <!-- Ambient Background -->
     <div class="glow-orb glow-orb-1"></div>
     <div class="glow-orb glow-orb-2"></div>
     <div class="glow-orb glow-orb-3"></div>
 
-    <!-- Navigation -->
-    <nav class="fixed w-full z-50 glass-nav transition-all duration-300 py-3 sm:py-4" id="navbar">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex justify-between items-center relative">
-            <div class="flex items-center cursor-pointer" onclick="showHome()">
-                <span class="font-jakarta font-bold text-xl sm:text-2xl tracking-tighter text-white z-50 relative">
+    <!-- ================= PUBLIC STOREFRONT (SPA) ================= -->
+    <div id="public-view">
+
+        <!-- Navigation -->
+        <nav class="fixed w-full z-50 glass-nav transition-all duration-300 py-3 sm:py-4" id="navbar">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex justify-between items-center relative">
+                <div class="flex items-center cursor-pointer" onclick="showHome()">
+                    <span class="font-jakarta font-bold text-xl sm:text-2xl tracking-tighter text-white z-50 relative">
+                        RDN<span class="bg-clip-text text-transparent bg-cyber-gradient">STORE</span>
+                    </span>
+                </div>
+
+                <!-- Desktop Menu -->
+                <div class="hidden md:flex space-x-8 items-center">
+                    <button onclick="showHome()" class="text-sm font-medium text-gray-300 hover:text-white transition-colors">Beranda</button>
+                    <button onclick="showHome()" class="text-sm font-medium text-gray-300 hover:text-white transition-colors">Katalog</button>
+                </div>
+
+                <!-- Mobile Menu Button -->
+                <button id="mobileMenuBtn" class="md:hidden text-white z-50 relative p-2 focus:outline-none">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path id="menuIcon" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
+                </button>
+            </div>
+
+            <!-- Mobile Menu Overlay -->
+            <div id="mobileMenu" class="fixed inset-0 bg-[#070c19]/95 backdrop-blur-xl z-40 flex flex-col justify-center items-center opacity-0 pointer-events-none transition-opacity duration-300 md:hidden">
+                <div class="flex flex-col items-center space-y-8 w-full px-6">
+                    <button onclick="showHome(); toggleMenu();" class="text-xl font-medium text-gray-300 hover:text-white transition-colors">Beranda</button>
+                    <button onclick="showHome(); toggleMenu();" class="text-xl font-medium text-gray-300 hover:text-white transition-colors">Katalog Produk</button>
+                </div>
+            </div>
+        </nav>
+
+        <!-- MAIN CONTAINER (SPA Wrapper) -->
+        <main class="min-h-screen">
+
+            <!-- ========================================== -->
+            <!-- VIEW 1: HOME & CATALOG (E-COMMERCE STYLE) -->
+            <!-- ========================================== -->
+            <div id="view-home" class="fade-enter block">
+                <!-- Hero Section -->
+                <section class="relative pt-24 pb-10 sm:pt-32 sm:pb-16 lg:pt-40 lg:pb-20 overflow-hidden px-4">
+                    <div class="max-w-7xl mx-auto text-center relative z-10">
+                        <div class="inline-block px-3 py-1 rounded-full bg-rdncyan/10 text-rdncyan border border-rdncyan/20 text-xs sm:text-sm font-semibold mb-4 sm:mb-6">
+                            🚀 Tech Premium Bekas Kualitas Teratas
+                        </div>
+                        <h1 class="gsap-hero font-jakarta text-3xl sm:text-5xl md:text-6xl lg:text-7xl font-extrabold text-white mb-4 sm:mb-6 tracking-tight leading-tight">
+                            Temukan Perangkat <br class="hidden sm:block">
+                            <span class="bg-clip-text text-transparent bg-cyber-gradient">Impian Anda.</span>
+                        </h1>
+                        <p class="gsap-hero font-inter text-sm sm:text-base md:text-lg text-gray-400 max-w-2xl mx-auto mb-8 sm:mb-10 leading-relaxed">
+                            Kami menyajikan gadget & laptop secondhand pilihan dengan transparansi kondisi 100%. Mulus, fungsional, dan siap pakai.
+                        </p>
+                        <div class="gsap-hero flex flex-wrap justify-center gap-3">
+                            <button onclick="filterCategory('semua')" data-filter="semua" class="filter-btn active px-5 py-2.5 rounded-full text-sm font-semibold glass-panel hover:bg-white/10 transition-all">Semua Produk</button>
+                            <button onclick="filterCategory('iphone')" data-filter="iphone" class="filter-btn px-5 py-2.5 rounded-full text-sm font-semibold glass-panel hover:bg-white/10 transition-all">iPhone</button>
+                            <button onclick="filterCategory('android')" data-filter="android" class="filter-btn px-5 py-2.5 rounded-full text-sm font-semibold glass-panel hover:bg-white/10 transition-all">Android</button>
+                            <button onclick="filterCategory('laptop')" data-filter="laptop" class="filter-btn px-5 py-2.5 rounded-full text-sm font-semibold glass-panel hover:bg-white/10 transition-all">Laptop</button>
+                            <button onclick="filterCategory('accessories')" data-filter="accessories" class="filter-btn px-5 py-2.5 rounded-full text-sm font-semibold glass-panel hover:bg-white/10 transition-all">Aksesoris</button>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Product Catalog Grid -->
+                <section class="pb-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
+                    <div class="flex items-center justify-between mb-6 sm:mb-8 border-b border-white/10 pb-4">
+                        <h2 class="font-jakarta text-xl sm:text-2xl font-bold text-white">Katalog Produk Terbaru</h2>
+                    </div>
+
+                    <div id="product-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
+                        <!-- Produk dirender otomatis di sini via JavaScript -->
+                    </div>
+
+                    <div id="empty-state" class="hide text-center py-20 text-gray-500">
+                        <svg class="w-16 h-16 mx-auto mb-4 opacity-40" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path></svg>
+                        <p>Belum ada produk di kategori ini.</p>
+                    </div>
+                </section>
+            </div>
+
+
+            <!-- ========================================== -->
+            <!-- VIEW 2: PRODUCT DETAIL PAGE                -->
+            <!-- ========================================== -->
+            <div id="view-detail" class="hidden pt-20 sm:pt-28 pb-10 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto fade-enter">
+
+                <!-- Back Button -->
+                <button onclick="showHome()" class="flex items-center text-gray-400 hover:text-white mb-6 sm:mb-8 transition-colors text-sm sm:text-base group bg-white/5 px-4 py-2 rounded-full border border-white/10 hover:bg-white/10 w-fit">
+                    <svg class="w-4 h-4 mr-2 transform group-hover:-translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
+                    Kembali ke Beranda
+                </button>
+
+                <!-- Konten detail dirender otomatis di sini -->
+                <div id="detail-content"></div>
+
+                <!-- Global Form (Muncul di bawah Detail) -->
+                <div id="nego-section" class="mt-16 sm:mt-24 max-w-3xl mx-auto pt-10 border-t border-white/10 scroll-mt-24">
+                    <div class="glass-panel rounded-3xl p-5 sm:p-8 md:p-12 text-center shadow-2xl">
+                        <h2 class="font-jakarta text-2xl sm:text-3xl font-bold text-white mb-3">Tertarik? Mari Diskusi</h2>
+                        <p class="text-sm sm:text-base text-gray-400 mb-6 sm:mb-8">Isi formulir ini untuk terhubung langsung ke WhatsApp penjual dengan rapi.</p>
+
+                        <form id="waForm" class="space-y-4 sm:space-y-5 text-left">
+                            <div>
+                                <label class="block text-xs sm:text-sm font-medium text-gray-300 mb-1">Nama Lengkap</label>
+                                <input type="text" id="buyerName" required class="w-full bg-deepnavy/50 border border-white/10 rounded-xl px-4 py-3 sm:py-4 text-sm sm:text-base text-white focus:outline-none focus:border-rdncyan focus:ring-1 focus:ring-rdncyan transition-colors" placeholder="Masukkan nama Anda">
+                            </div>
+
+                            <div>
+                                <label class="block text-xs sm:text-sm font-medium text-gray-300 mb-1">Pilih Produk</label>
+                                <select id="selectedProduct" required class="w-full bg-deepnavy/50 border border-white/10 rounded-xl px-4 py-3 sm:py-4 text-sm sm:text-base text-white focus:outline-none focus:border-rdncyan focus:ring-1 focus:ring-rdncyan appearance-none">
+                                    <option value="" disabled selected>Pilih unit yang diminati</option>
+                                </select>
+                            </div>
+
+                            <div>
+                                <label class="block text-xs sm:text-sm font-medium text-gray-300 mb-1">Metode Transaksi</label>
+                                <select id="transactionMethod" required class="w-full bg-deepnavy/50 border border-white/10 rounded-xl px-4 py-3 sm:py-4 text-sm sm:text-base text-white focus:outline-none focus:border-rdncyan focus:ring-1 focus:ring-rdncyan appearance-none">
+                                    <option value="" disabled selected>Pilih metode pengiriman/pertemuan</option>
+                                    <option value="COD Cileungsi/Cibubur">COD Area Cileungsi / Cibubur</option>
+                                    <option value="COD Jabodetabek">COD Jabodetabek (S&K Berlaku)</option>
+                                    <option value="Rekber Tokopedia">Rekber Tokopedia</option>
+                                    <option value="Rekber Shopee">Rekber Shopee</option>
+                                    <option value="Gojek/Grab">Kirim via Gojek/Grab (Instan)</option>
+                                </select>
+                            </div>
+
+                            <div>
+                                <label class="block text-xs sm:text-sm font-medium text-gray-300 mb-1">Tawaran Harga Nego (Opsional)</label>
+                                <input type="text" id="offerPrice" class="w-full bg-deepnavy/50 border border-white/10 rounded-xl px-4 py-3 sm:py-4 text-sm sm:text-base text-white focus:outline-none focus:border-rdncyan focus:ring-1 focus:ring-rdncyan transition-colors" placeholder="Cth: Rp 5.200.000">
+                            </div>
+
+                            <div>
+                                <label class="block text-xs sm:text-sm font-medium text-gray-300 mb-1">Catatan Tambahan</label>
+                                <textarea id="extraNotes" rows="3" class="w-full bg-deepnavy/50 border border-white/10 rounded-xl px-4 py-3 sm:py-4 text-sm sm:text-base text-white focus:outline-none focus:border-rdncyan focus:ring-1 focus:ring-rdncyan transition-colors" placeholder="Ada pertanyaan mengenai kondisi unit?"></textarea>
+                            </div>
+
+                            <button type="submit" class="w-full mt-6 py-4 rounded-xl bg-[#25D366] hover:bg-[#128C7E] text-white font-bold flex items-center justify-center space-x-2 transition-all hover:scale-[1.02] active:scale-95 shadow-[0_4px_15px_rgba(37,211,102,0.3)]">
+                                <svg class="w-5 h-5 sm:w-6 sm:h-6" fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51a12.8 12.8 0 0 0-.57-.01c-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413Z"/></svg>
+                                <span>Kirim via WhatsApp</span>
+                            </button>
+                        </form>
+                    </div>
+                </div>
+
+            </div>
+
+        </main>
+
+        <!-- Footer -->
+        <footer class="border-t border-white/10 bg-[#040812] py-8 text-center mt-auto">
+            <div class="max-w-7xl mx-auto px-4">
+                <span class="font-jakarta font-bold text-xl tracking-tighter text-white block mb-2">
                     RDN<span class="bg-clip-text text-transparent bg-cyber-gradient">STORE</span>
                 </span>
+                <p class="text-gray-500 text-sm mb-4">Transaksi Aman, Nyaman, dan Transparan.</p>
+                <div class="text-gray-400 text-sm mb-6 space-y-1">
+                    <p>📍 Melayani COD: Cileungsi, Cibubur, dan Jabodetabek</p>
+                    <p>👤 Penjual: <span class="font-semibold text-white">Raden Antasena Kartasasmita</span></p>
+                </div>
+                <p class="text-xs text-gray-600 mb-4">&copy; 2024 RDNSTORE. All Rights Reserved.</p>
+                <!-- Tombol Rahasia Admin Panel -->
+                <button onclick="openAdminAuth()" class="text-gray-700 hover:text-rdncyan transition-colors" title="Admin Access">
+                    <i data-lucide="lock" class="w-4 h-4 inline"></i>
+                </button>
             </div>
-            
-            <!-- Desktop Menu -->
-            <div class="hidden md:flex space-x-8 items-center">
-                <button onclick="showHome()" class="text-sm font-medium text-gray-300 hover:text-white transition-colors">Beranda</button>
-                <button onclick="showHome()" class="text-sm font-medium text-gray-300 hover:text-white transition-colors">Katalog</button>
-            </div>
+        </footer>
 
-            <!-- Mobile Menu Button -->
-            <button id="mobileMenuBtn" class="md:hidden text-white z-50 relative p-2 focus:outline-none">
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path id="menuIcon" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
-            </button>
-        </div>
-
-        <!-- Mobile Menu Overlay -->
-        <div id="mobileMenu" class="fixed inset-0 bg-[#070c19]/95 backdrop-blur-xl z-40 flex flex-col justify-center items-center opacity-0 pointer-events-none transition-opacity duration-300 md:hidden">
-            <div class="flex flex-col items-center space-y-8 w-full px-6">
-                <button onclick="showHome(); toggleMenu();" class="text-xl font-medium text-gray-300 hover:text-white transition-colors">Beranda</button>
-                <button onclick="showHome(); toggleMenu();" class="text-xl font-medium text-gray-300 hover:text-white transition-colors">Katalog Produk</button>
-            </div>
-        </div>
-    </nav>
-
-    <!-- MAIN CONTAINER (SPA Wrapper) -->
-    <main class="min-h-screen">
-        
-        <!-- ========================================== -->
-        <!-- VIEW 1: HOME & CATALOG (E-COMMERCE STYLE) -->
-        <!-- ========================================== -->
-        <div id="view-home" class="fade-enter block">
-            <!-- Hero Section -->
-            <section class="relative pt-24 pb-10 sm:pt-32 sm:pb-16 lg:pt-40 lg:pb-20 overflow-hidden px-4">
-                <div class="max-w-7xl mx-auto text-center relative z-10">
-                    <div class="inline-block px-3 py-1 rounded-full bg-rdncyan/10 text-rdncyan border border-rdncyan/20 text-xs sm:text-sm font-semibold mb-4 sm:mb-6">
-                        🚀 Tech Premium Bekas Kualitas Teratas
+        <!-- Lightbox Modal -->
+        <div id="lightbox" class="fixed inset-0 z-[100] bg-black/95 hidden items-center justify-center opacity-0 transition-opacity duration-300 p-4">
+            <div class="relative w-full max-w-5xl">
+                <button onclick="closeModal()" class="absolute top-3 right-3 sm:top-4 sm:right-4 text-white hover:text-red-500 transition-colors p-2 bg-black/60 rounded-full z-10">
+                    <svg class="w-6 h-6 sm:w-8 sm:h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                </button>
+                <div class="rounded-2xl overflow-hidden glass-panel p-2 sm:p-4">
+                    <img id="lightboxImg" src="" alt="Preview" class="w-full max-h-[75vh] object-contain rounded-xl shadow-2xl">
+                    <div class="mt-4 text-center px-2 sm:px-4">
+                        <h3 id="lightboxTitle" class="text-lg sm:text-xl font-semibold text-white"></h3>
+                        <p id="lightboxDescription" class="text-sm sm:text-base text-gray-300 mt-2"></p>
                     </div>
-                    <h1 class="gsap-hero font-jakarta text-3xl sm:text-5xl md:text-6xl lg:text-7xl font-extrabold text-white mb-4 sm:mb-6 tracking-tight leading-tight">
-                        Temukan Perangkat <br class="hidden sm:block">
-                        <span class="bg-clip-text text-transparent bg-cyber-gradient">Impian Anda.</span>
-                    </h1>
-                    <p class="gsap-hero font-inter text-sm sm:text-base md:text-lg text-gray-400 max-w-2xl mx-auto mb-8 sm:mb-10 leading-relaxed">
-                        Kami menyajikan laptop & PC secondhand pilihan dengan transparansi kondisi 100%. Mulus, fungsional, dan siap pakai.
-                    </p>
                 </div>
-            </section>
+            </div>
+        </div>
+    </div>
 
-            <!-- Product Catalog Grid -->
-            <section class="pb-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
-                <div class="flex items-center justify-between mb-6 sm:mb-8 border-b border-white/10 pb-4">
-                    <h2 class="font-jakarta text-xl sm:text-2xl font-bold text-white">Katalog Produk Terbaru</h2>
+    <!-- ================= ADMIN PANEL ================= -->
+    <div id="admin-view" class="hide fixed inset-0 bg-deepnavy z-[200] flex flex-col h-screen overflow-hidden">
+        <!-- Admin Header -->
+        <header class="h-16 border-b border-white/10 bg-deepnavy flex items-center justify-between px-4 sm:px-6 shrink-0">
+            <div class="flex items-center gap-3">
+                <div class="bg-rdncyan text-deepnavy p-1.5 rounded-lg">
+                    <i data-lucide="layout-dashboard" class="w-5 h-5"></i>
                 </div>
+                <h2 class="font-jakarta font-bold text-base sm:text-lg text-white">Admin Panel RDNSTORE</h2>
+            </div>
+            <div class="flex items-center gap-2 sm:gap-4">
+                <button onclick="openProductForm()" class="bg-rdncyan text-deepnavy px-3 sm:px-4 py-2 rounded-lg font-medium hover:bg-rdnblue transition flex items-center gap-2 text-xs sm:text-sm">
+                    <i data-lucide="plus" class="w-4 h-4"></i> <span class="hidden sm:inline">Tambah Produk</span>
+                </button>
+                <button onclick="closeAdmin()" class="text-slate-400 hover:text-white transition flex items-center gap-2 text-xs sm:text-sm">
+                    <i data-lucide="log-out" class="w-4 h-4"></i> <span class="hidden sm:inline">Keluar</span>
+                </button>
+            </div>
+        </header>
 
-                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
-                    
-                    <!-- Product Card 1: Laptop -->
-                    <div onclick="showDetail('laptop')" class="glass-panel rounded-2xl overflow-hidden cursor-pointer group hover:border-rdncyan/50 transition-all duration-300 hover:-translate-y-2 flex flex-col h-full">
-                        <div class="relative h-56 overflow-hidden">
-                            <img src="Tampak%20Depan.jpeg" alt="ASUS Vivobook" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500">
-                            <div class="absolute top-3 left-3 px-2 py-1 bg-black/60 backdrop-blur-md rounded text-xs font-bold text-white border border-white/10">
-                                Mulus 95%
+        <!-- Admin Content -->
+        <div class="flex-grow overflow-auto p-4 sm:p-6">
+            <div class="max-w-7xl mx-auto">
+                <div class="glass-panel rounded-2xl overflow-x-auto">
+                    <table class="w-full text-left text-sm whitespace-nowrap">
+                        <thead class="bg-white/5 border-b border-white/10 text-slate-300">
+                            <tr>
+                                <th class="p-4 font-medium">Produk</th>
+                                <th class="p-4 font-medium">Kategori</th>
+                                <th class="p-4 font-medium">Harga (IDR)</th>
+                                <th class="p-4 font-medium">Status</th>
+                                <th class="p-4 font-medium text-right">Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody id="admin-table-body" class="divide-y divide-white/5">
+                            <!-- Baris tabel admin dirender di sini -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ================= PRODUCT FORM MODAL ================= -->
+    <div id="form-modal" class="hide fixed inset-0 bg-black/80 z-[210] flex items-center justify-center p-4 backdrop-blur-sm">
+        <div class="bg-deepnavy border border-white/10 rounded-2xl w-full max-w-3xl max-h-[90vh] flex flex-col shadow-2xl relative overflow-hidden">
+            <div class="p-6 border-b border-white/10 flex justify-between items-center bg-white/5 shrink-0">
+                <h3 id="modal-title" class="text-xl font-jakarta font-bold text-white">Tambah Produk</h3>
+                <button onclick="closeProductForm()" class="text-slate-400 hover:text-white"><i data-lucide="x"></i></button>
+            </div>
+
+            <div class="p-6 overflow-y-auto flex-grow">
+                <form id="product-form" class="space-y-6">
+                    <input type="hidden" id="form-id">
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="space-y-2">
+                            <label class="text-sm text-slate-400">Nama Produk</label>
+                            <input type="text" id="form-name" required class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-rdncyan transition">
+                        </div>
+                        <div class="space-y-2">
+                            <label class="text-sm text-slate-400">Kategori</label>
+                            <select id="form-category" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-rdncyan transition appearance-none">
+                                <option value="iphone" class="bg-deepnavy">iPhone</option>
+                                <option value="android" class="bg-deepnavy">Android</option>
+                                <option value="laptop" class="bg-deepnavy">Laptop</option>
+                                <option value="accessories" class="bg-deepnavy">Aksesoris</option>
+                            </select>
+                        </div>
+                        <div class="space-y-2">
+                            <label class="text-sm text-slate-400">Harga Jual (Rp)</label>
+                            <input type="number" id="form-price" required class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-rdncyan transition">
+                        </div>
+                        <div class="space-y-2">
+                            <label class="text-sm text-slate-400">Harga Coret / Asli (Opsional)</label>
+                            <input type="number" id="form-originalPrice" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-rdncyan transition">
+                        </div>
+                    </div>
+
+                    <div class="space-y-2">
+                        <label class="text-sm text-slate-400">Deskripsi Pendek</label>
+                        <textarea id="form-description" rows="3" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-rdncyan transition"></textarea>
+                    </div>
+
+                    <div class="space-y-2">
+                        <label class="text-sm text-slate-400">Spesifikasi Detail (Gunakan baris baru untuk tiap poin)</label>
+                        <textarea id="form-specs" rows="4" placeholder="Contoh: Baterai 95%&#10;Layar tidak ada bekas" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-rdncyan transition"></textarea>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="space-y-2">
+                            <label class="text-sm text-slate-400">Kondisi Unit</label>
+                            <textarea id="form-condition" rows="3" placeholder="Contoh: Mulus 95%, baterai masih kuat" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-rdncyan transition"></textarea>
+                        </div>
+                        <div class="space-y-2">
+                            <label class="text-sm text-slate-400">Kelengkapan Unit</label>
+                            <textarea id="form-completeness" rows="3" placeholder="Contoh: Box, charger, kabel, casing" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-rdncyan transition"></textarea>
+                        </div>
+                    </div>
+
+                    <div class="space-y-2">
+                        <label class="text-sm text-slate-400">Status Produk</label>
+                        <select id="form-status" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-rdncyan transition appearance-none">
+                            <option value="available" class="bg-deepnavy">Tersedia (In Stock)</option>
+                            <option value="sold" class="bg-deepnavy">Terjual (Sold Out)</option>
+                        </select>
+                    </div>
+
+                    <!-- Image Management Section -->
+                    <div class="space-y-4 pt-4 border-t border-white/10">
+                        <div class="flex justify-between items-center">
+                            <label class="text-sm text-slate-400 font-medium block">Foto Produk (Terhubung ke Cloudinary)</label>
+                            <button type="button" onclick="document.getElementById('form-image-upload').click()" class="text-xs bg-white/10 hover:bg-white/20 px-3 py-1.5 rounded text-white flex items-center gap-1 transition">
+                                <i data-lucide="upload" class="w-3 h-3"></i> Upload Foto Baru
+                            </button>
+                            <input type="file" id="form-image-upload" multiple accept="image/*" class="hidden" onchange="handleImageSelection(event)">
+                        </div>
+
+                        <!-- Preview Images Container -->
+                        <div id="image-preview-container" class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-3">
+                            <!-- Preview gambar tampil di sini -->
+                        </div>
+                        <p class="text-xs text-slate-500">*Klik ikon tong sampah pada foto untuk menghapus dari daftar. Foto pertama menjadi foto utama (cover).</p>
+                    </div>
+                </form>
+            </div>
+
+            <div class="p-6 border-t border-white/10 bg-white/5 shrink-0 flex justify-end gap-3">
+                <button onclick="closeProductForm()" class="px-5 py-2.5 rounded-lg font-medium text-slate-300 hover:text-white transition">Batal</button>
+                <button onclick="submitProductForm()" id="btn-save-product" class="bg-rdncyan text-deepnavy px-5 py-2.5 rounded-lg font-bold hover:bg-rdnblue transition flex items-center gap-2">
+                    <i data-lucide="save" class="w-4 h-4"></i> Simpan Produk
+                </button>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- ================= JAVASCRIPT LOGIC ================= -->
+    <script>
+        // --- 1. CONFIGURATION ---
+        // Ganti googleSheetUrl & kredensial cloudinary sesuai akun Anda sendiri.
+        const CONFIG = {
+            googleSheetUrl: 'https://script.google.com/macros/s/AKfycbwNJS4GJW1OIiCXP_sSmxt9txKHJDbXWB3ExDkZz3FRDdAbM5nGlcfy0G5EVJ-GvndrBA/exec',
+            cloudinary: {
+                cloudName: 'sec03zqs',
+                apiKey: '787918577271353',
+                apiSecret: 'GKkRsYio_Y3kRZ2ZbNpkzcU3fvg', // Signature dibuat aman di client-side (lihat di bawah)
+            },
+            whatsappNumber: '6281385869226',
+            adminPassword: 'sena2008' // Ganti password admin sesuai keinginan
+        };
+
+        const categoryLabels = { iphone: 'iPhone', android: 'Android', laptop: 'Laptop', accessories: 'Aksesoris' };
+        const categoryColors = { iphone: 'text-rdncyan', android: 'text-green-400', laptop: 'text-rdnindigo', accessories: 'text-purple-400' };
+
+        // --- 2. STATE MANAGEMENT ---
+        let state = {
+            products: [],
+            currentFilter: 'semua',
+            currentDetailId: null,
+            formImages: [],       // Gambar produk yang sedang diedit di form (string URL atau object pending)
+            pendingUploadFiles: [] // File yang siap diupload ke Cloudinary
+        };
+
+        // Initialize Icons
+        lucide.createIcons();
+
+        // --- 3. UTILITIES ---
+        const formatRupiah = (number) => {
+            return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(number || 0);
+        };
+
+        const generateId = () => 'prod_' + Math.random().toString(36).substr(2, 9);
+
+        // Security: Generate Cloudinary Signature client-side
+        async function generateCloudinarySignature(timestamp) {
+            const str = `timestamp=${timestamp}${CONFIG.cloudinary.apiSecret}`;
+            const msgBuffer = new TextEncoder().encode(str);
+            const hashBuffer = await crypto.subtle.digest('SHA-1', msgBuffer);
+            const hashArray = Array.from(new Uint8Array(hashBuffer));
+            return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+        }
+
+        // --- 4. DATA FETCHING (GOOGLE SHEETS) ---
+        async function fetchProducts() {
+            try {
+                const response = await fetch(CONFIG.googleSheetUrl);
+                const data = await response.json();
+                state.products = data || [];
+                renderStorefront();
+                renderProductOptions();
+                renderAdminTable();
+            } catch (error) {
+                console.error("Error fetching data:", error);
+                Swal.fire({ title: 'Error', text: 'Gagal memuat data dari database.', icon: 'error', background: '#070c19', color: '#fff' });
+            } finally {
+                const loader = document.getElementById('global-loader');
+                loader.classList.add('opacity-0', 'pointer-events-none');
+            }
+        }
+
+        async function pushToDatabase(action, dataObj) {
+            try {
+                const response = await fetch(CONFIG.googleSheetUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'text/plain;charset=utf-8' }, // Apps Script lebih suka plain text agar tidak kena preflight
+                    body: JSON.stringify({ action: action, ...dataObj })
+                });
+                return await response.json();
+            } catch (error) {
+                console.error("Database Push Error:", error);
+                throw error;
+            }
+        }
+
+        // --- 5. CLOUDINARY UPLOAD LOGIC ---
+        async function uploadImagesToCloudinary(files) {
+            const uploadedUrls = [];
+            for (const file of files) {
+                const timestamp = Math.round((new Date).getTime() / 1000);
+                const signature = await generateCloudinarySignature(timestamp);
+
+                const formData = new FormData();
+                formData.append('file', file);
+                formData.append('api_key', CONFIG.cloudinary.apiKey);
+                formData.append('timestamp', timestamp);
+                formData.append('signature', signature);
+
+                const res = await fetch(`https://api.cloudinary.com/v1_1/${CONFIG.cloudinary.cloudName}/image/upload`, {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const data = await res.json();
+                if (data.secure_url) {
+                    uploadedUrls.push(data.secure_url);
+                } else {
+                    console.error("Cloudinary upload failed:", data);
+                }
+            }
+            return uploadedUrls;
+        }
+
+        // --- 6. STOREFRONT RENDERING ---
+        function getProductDetailLines(product) {
+            const lines = [];
+            if (product.specs) {
+                lines.push(...product.specs.split('\n').map(s => s.trim()).filter(Boolean));
+            }
+            if (product.conditionUnit) {
+                lines.push(`Kondisi Unit: ${product.conditionUnit}`);
+            }
+            if (product.completenessUnit) {
+                lines.push(`Kelengkapan Unit: ${product.completenessUnit}`);
+            }
+            return lines;
+        }
+
+        function filterCategory(category) {
+            state.currentFilter = category;
+            document.querySelectorAll('.filter-btn').forEach(btn => {
+                if (btn.dataset.filter === category) {
+                    btn.classList.add('active');
+                } else {
+                    btn.classList.remove('active');
+                }
+            });
+            renderStorefront();
+        }
+
+        function renderStorefront() {
+            const grid = document.getElementById('product-grid');
+            const emptyState = document.getElementById('empty-state');
+            grid.innerHTML = '';
+
+            const filtered = state.products.filter(p => state.currentFilter === 'semua' || p.category === state.currentFilter);
+
+            if (filtered.length === 0) {
+                grid.classList.add('hide');
+                emptyState.classList.remove('hide');
+                return;
+            }
+
+            grid.classList.remove('hide');
+            emptyState.classList.add('hide');
+
+            filtered.forEach(product => {
+                const coverImage = product.images && product.images.length > 0 ? product.images[0] : 'https://placehold.co/600x600/0f172a/4facfe?text=No+Image';
+                const isSold = product.status === 'sold';
+                const hasDiscount = product.originalPrice && parseInt(product.originalPrice) > parseInt(product.price);
+                const discountPct = hasDiscount ? Math.round((1 - (product.price / product.originalPrice)) * 100) : 0;
+                const catLabel = categoryLabels[product.category] || product.category;
+                const catColor = categoryColors[product.category] || 'text-rdncyan';
+                const specLines = getProductDetailLines(product).slice(0, 3);
+
+                const card = document.createElement('div');
+                card.onclick = () => showDetail(product.id);
+                card.className = "glass-panel rounded-2xl overflow-hidden cursor-pointer group hover:border-rdncyan/50 transition-all duration-300 hover:-translate-y-2 flex flex-col h-full";
+
+                card.innerHTML = `
+                    <div class="relative h-56 overflow-hidden">
+                        <img src="${coverImage}" alt="${product.name}" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500 ${isSold ? 'grayscale' : ''}">
+                        ${hasDiscount && !isSold ? `<div class="absolute top-3 left-3 px-2 py-1 bg-black/60 backdrop-blur-md rounded text-xs font-bold text-white border border-white/10">Diskon ${discountPct}%</div>` : ''}
+                        ${isSold ? `<div class="absolute inset-0 bg-black/60 flex items-center justify-center backdrop-blur-sm"><span class="text-red-400 border-2 border-red-400 font-bold px-4 py-2 rounded transform -rotate-12 text-lg tracking-widest">SOLD OUT</span></div>` : ''}
+                    </div>
+                    <div class="p-5 flex-grow flex flex-col justify-between">
+                        <div>
+                            <p class="text-xs ${catColor} font-semibold mb-1">${catLabel}</p>
+                            <h3 class="font-jakarta text-lg sm:text-xl font-bold text-white mb-2 leading-tight">${product.name}</h3>
+                            <div class="flex flex-wrap gap-2 mb-4">
+                                ${specLines.map(s => `<span class="text-xs px-2 py-1 bg-white/5 rounded text-gray-300">${s}</span>`).join('')}
                             </div>
                         </div>
-                        <div class="p-5 flex-grow flex flex-col justify-between">
+                        <div class="flex items-end justify-between mt-4">
                             <div>
-                                <p class="text-xs text-rdncyan font-semibold mb-1">Laptop Premium</p>
-                                <h3 class="font-jakarta text-lg sm:text-xl font-bold text-white mb-2 leading-tight">ASUS Vivobook M1403QA</h3>
-                                <div class="flex flex-wrap gap-2 mb-4">
-                                    <span class="text-xs px-2 py-1 bg-white/5 rounded text-gray-300">Ryzen 5</span>
-                                    <span class="text-xs px-2 py-1 bg-white/5 rounded text-gray-300">24GB RAM</span>
-                                    <span class="text-xs px-2 py-1 bg-white/5 rounded text-gray-300">512GB SSD</span>
-                                </div>
+                                ${hasDiscount ? `<p class="text-xs text-gray-500 line-through decoration-red-500">${formatRupiah(product.originalPrice)}</p>` : ''}
+                                <p class="font-jakarta text-lg sm:text-xl font-bold text-white">${formatRupiah(product.price)}</p>
                             </div>
-                            <div class="flex items-end justify-between mt-4">
-                                <div>
-                                    <p class="font-jakarta text-lg sm:text-xl font-bold text-white">Rp 5.499.000</p>
-                                </div>
-                                <button class="w-8 h-8 rounded-full bg-rdncyan text-deepnavy flex items-center justify-center group-hover:bg-white transition-colors">
-                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
-                                </button>
-                            </div>
+                            <button class="w-8 h-8 rounded-full bg-rdncyan text-deepnavy flex items-center justify-center group-hover:bg-white transition-colors shrink-0">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                            </button>
                         </div>
                     </div>
+                `;
+                grid.appendChild(card);
+            });
+        }
 
-                    <!-- Product Card 2: PC -->
-                    <div onclick="showDetail('pc')" class="glass-panel rounded-2xl overflow-hidden cursor-pointer group hover:border-purple-500/50 transition-all duration-300 hover:-translate-y-2 flex flex-col h-full">
-                        <div class="relative h-56 overflow-hidden">
-                            <img src="https://placehold.co/800x600/0f172a/8b5cf6?text=PC+Gaming+Setup" alt="PC Gaming" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500">
-                            <div class="absolute top-3 left-3 px-2 py-1 bg-red-500/80 backdrop-blur-md rounded text-xs font-bold text-white border border-white/10">
-                                Diskon Besar
-                            </div>
-                        </div>
-                        <div class="p-5 flex-grow flex flex-col justify-between">
-                            <div>
-                                <p class="text-xs text-purple-400 font-semibold mb-1">Desktop Gaming</p>
-                                <h3 class="font-jakarta text-lg sm:text-xl font-bold text-white mb-2 leading-tight">Custom PC Gaming eSports & AAA</h3>
-                                <div class="flex flex-wrap gap-2 mb-4">
-                                    <span class="text-xs px-2 py-1 bg-white/5 rounded text-gray-300">GTX 1650S</span>
-                                    <span class="text-xs px-2 py-1 bg-white/5 rounded text-gray-300">32GB RAM</span>
-                                </div>
-                            </div>
-                            <div class="flex items-end justify-between mt-4">
-                                <div>
-                                    <p class="text-xs text-gray-500 line-through decoration-red-500">Rp 10.850.000</p>
-                                    <p class="font-jakarta text-lg sm:text-xl font-bold text-white">Rp 7.000.000</p>
-                                </div>
-                                <button class="w-8 h-8 rounded-full bg-purple-400 text-deepnavy flex items-center justify-center group-hover:bg-white transition-colors">
-                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
-                                </button>
-                            </div>
-                        </div>
-                    </div>
+        // Isi dropdown "Pilih Produk" pada form nego WhatsApp
+        function renderProductOptions() {
+            const select = document.getElementById('selectedProduct');
+            const currentValue = select.value;
+            select.innerHTML = '<option value="" disabled selected>Pilih unit yang diminati</option>';
+            state.products.forEach(product => {
+                const opt = document.createElement('option');
+                opt.value = product.name;
+                opt.textContent = `${product.name} (${formatRupiah(product.price)})${product.status === 'sold' ? ' - Terjual' : ''}`;
+                select.appendChild(opt);
+            });
+            if (currentValue) select.value = currentValue;
+        }
 
+        // --- 7. PRODUCT DETAIL VIEW ---
+        function showDetail(productId) {
+            const product = state.products.find(p => p.id === productId);
+            if (!product) return;
+            state.currentDetailId = productId;
+
+            const images = (product.images && product.images.length > 0) ? product.images : ['https://placehold.co/800x600/0f172a/4facfe?text=No+Image'];
+            const isSold = product.status === 'sold';
+            const hasDiscount = product.originalPrice && parseInt(product.originalPrice) > parseInt(product.price);
+            const catLabel = categoryLabels[product.category] || product.category;
+            const specLines = String(product.specs || '').split('\n').map(s => s.trim()).filter(Boolean);
+            const conditionLines = String(product.conditionUnit || '').split('\n').map(s => s.trim()).filter(Boolean);
+            const completenessLines = String(product.completenessUnit || '').split('\n').map(s => s.trim()).filter(Boolean);
+
+            const thumbsHtml = images.slice(1).map((img, i) => `
+                <div class="gallery-img-container h-24 sm:h-28 rounded-xl border border-white/10 bg-white/5 hover:border-rdncyan/60" onclick="openModal('${img}', '${escapeAttr(product.name)}', 'Foto tambahan produk.')">
+                    <img src="${img}" alt="Foto ${i + 2}" class="w-full h-full object-cover">
                 </div>
-            </section>
-        </div>
+            `).join('');
 
-
-        <!-- ========================================== -->
-        <!-- VIEW 2: PRODUCT DETAIL PAGE                -->
-        <!-- ========================================== -->
-        <div id="view-detail" class="hidden pt-20 sm:pt-28 pb-10 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto fade-enter">
-            
-            <!-- Back Button -->
-            <button onclick="showHome()" class="flex items-center text-gray-400 hover:text-white mb-6 sm:mb-8 transition-colors text-sm sm:text-base group bg-white/5 px-4 py-2 rounded-full border border-white/10 hover:bg-white/10 w-fit">
-                <svg class="w-4 h-4 mr-2 transform group-hover:-translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
-                Kembali ke Beranda
-            </button>
-
-            <!-- PRODUCT 1 DETAIL (LAPTOP) -->
-            <div id="detail-laptop" class="hidden">
+            const detailHtml = `
                 <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12">
                     <!-- Images -->
                     <div class="space-y-3 sm:space-y-4">
-                        <div class="glass-panel rounded-2xl p-2 sm:p-3">
-                            <button type="button" class="w-full h-[250px] sm:h-[350px] md:h-[450px] rounded-xl overflow-hidden relative group block" onclick="openModal('Tampak%20Depan.jpeg', 'Tampak Depan', 'Bagian depan laptop terlihat rapi, layar bersih, dan bodi masih dalam kondisi prima.')">
-                                <img src="Tampak%20Depan.jpeg" alt="Tampak Depan ASUS Vivobook" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105">
+                        <div class="glass-panel rounded-2xl p-2 sm:p-3 relative">
+                            <button type="button" class="w-full h-[250px] sm:h-[350px] md:h-[450px] rounded-xl overflow-hidden relative group block" onclick="openModal('${images[0]}', '${escapeAttr(product.name)}', '${escapeAttr(product.description || '')}')">
+                                <img src="${images[0]}" alt="${product.name}" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105 ${isSold ? 'grayscale' : ''}">
                                 <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-transparent"></div>
                                 <div class="absolute bottom-4 left-4 rounded-full bg-black/60 px-3 py-1 text-xs font-semibold text-white backdrop-blur-sm">Klik untuk lihat detail</div>
+                                ${isSold ? `<div class="absolute top-4 right-4 text-red-400 border-2 border-red-400 font-bold px-3 py-1 rounded transform -rotate-6 text-sm tracking-widest bg-black/40">SOLD OUT</div>` : ''}
                             </button>
                         </div>
-                        <div class="grid grid-cols-2 sm:grid-cols-2 xl:grid-cols-4 gap-2 sm:gap-3">
-                            <button type="button" class="gallery-img-container h-24 sm:h-28 rounded-xl border border-white/10 bg-white/5 hover:border-rdncyan/60" onclick="openModal('Tampak%20Belakang.jpeg', 'Tampak Belakang', 'Bagian belakang laptop tampil bersih dan minimalis, cocok untuk tampilan premium.')">
-                                <img src="Tampak%20Belakang.jpeg" alt="Tampak Belakang ASUS Vivobook" class="w-full h-full object-cover">
-                                <span class="absolute bottom-2 left-2 rounded-full bg-black/60 px-2 py-1 text-[10px] font-semibold text-white">Belakang</span>
-                            </button>
-                            <button type="button" class="gallery-img-container h-24 sm:h-28 rounded-xl border border-white/10 bg-white/5 hover:border-rdncyan/60" onclick="openModal('Tampak%20Keyboard.jpeg', 'Tampak Keyboard', 'Keyboard terasa nyaman dipakai dan tombol-tombol berfungsi dengan baik.')">
-                                <img src="Tampak%20Keyboard.jpeg" alt="Tampak Keyboard ASUS Vivobook" class="w-full h-full object-cover">
-                                <span class="absolute bottom-2 left-2 rounded-full bg-black/60 px-2 py-1 text-[10px] font-semibold text-white">Keyboard</span>
-                            </button>
-                            <button type="button" class="gallery-img-container h-24 sm:h-28 rounded-xl border border-white/10 bg-white/5 hover:border-rdncyan/60" onclick="openModal('Tampak%20Samping%20Kanan.jpeg', 'Tampak Samping Kanan', 'Sisi kanan laptop terlihat rapi dan tidak ada cacat fisik yang mencolok.')">
-                                <img src="Tampak%20Samping%20Kanan.jpeg" alt="Tampak Samping Kanan ASUS Vivobook" class="w-full h-full object-cover">
-                                <span class="absolute bottom-2 left-2 rounded-full bg-black/60 px-2 py-1 text-[10px] font-semibold text-white">Kanan</span>
-                            </button>
-                            <button type="button" class="gallery-img-container h-24 sm:h-28 rounded-xl border border-white/10 bg-white/5 hover:border-rdncyan/60" onclick="openModal('Tampak%20Samping%20Kiri.jpeg', 'Tampak Samping Kiri', 'Sisi kiri laptop pun masih terlihat bersih dan dalam kondisi baik.')">
-                                <img src="Tampak%20Samping%20Kiri.jpeg" alt="Tampak Samping Kiri ASUS Vivobook" class="w-full h-full object-cover">
-                                <span class="absolute bottom-2 left-2 rounded-full bg-black/60 px-2 py-1 text-[10px] font-semibold text-white">Kiri</span>
-                            </button>
-                        </div>
+                        ${images.length > 1 ? `<div class="grid grid-cols-2 sm:grid-cols-2 xl:grid-cols-4 gap-2 sm:gap-3">${thumbsHtml}</div>` : ''}
                     </div>
 
                     <!-- Info -->
                     <div class="flex flex-col">
                         <div class="inline-block px-3 py-1 rounded-full bg-rdnindigo/20 text-rdnindigo border border-rdnindigo/30 text-[10px] sm:text-xs font-bold tracking-wider uppercase mb-3 w-fit">
-                            Premium Secondhand
+                            ${catLabel} &middot; Premium Secondhand
                         </div>
-                        <h2 class="font-jakarta text-2xl sm:text-3xl md:text-4xl font-bold text-white mb-2">ASUS Vivobook M1403QA</h2>
-                        <p class="text-sm sm:text-base text-gray-400 mb-6 font-medium">Quiet Blue (Biru Tua Metalik)</p>
+                        <h2 class="font-jakarta text-2xl sm:text-3xl md:text-4xl font-bold text-white mb-2">${product.name}</h2>
+                        <p class="text-sm sm:text-base text-gray-400 mb-6 font-medium">${product.description || 'Tidak ada deskripsi tambahan.'}</p>
 
                         <div class="p-4 sm:p-6 rounded-2xl bg-white/5 border border-white/10 mb-8 flex flex-col sm:flex-row justify-between sm:items-center gap-4">
                             <div>
-                                <p class="text-xs sm:text-sm text-gray-400 mb-1">Harga Nett</p>
-                                <p class="font-jakarta text-2xl sm:text-3xl md:text-4xl font-bold text-transparent bg-clip-text bg-cyber-gradient">Rp 5.499.000</p>
+                                ${hasDiscount ? `<p class="text-xs sm:text-sm text-gray-500 mb-1 line-through decoration-red-500">${formatRupiah(product.originalPrice)}</p>` : ''}
+                                <p class="font-jakarta text-2xl sm:text-3xl md:text-4xl font-bold text-transparent bg-clip-text bg-cyber-gradient">${formatRupiah(product.price)}</p>
                             </div>
-                            <button onclick="scrollToForm('ASUS Vivobook M1403QA')" class="w-full sm:w-auto text-center px-8 py-3.5 rounded-xl bg-cyber-gradient text-white font-bold hover:shadow-[0_0_20px_rgba(79,172,254,0.4)] transition-all active:scale-95">
-                                Beli Sekarang
-                            </button>
+                            ${isSold
+                                ? `<button disabled class="w-full sm:w-auto text-center px-8 py-3.5 rounded-xl bg-white/10 text-gray-400 font-bold cursor-not-allowed">Sudah Terjual</button>`
+                                : `<button onclick="scrollToForm('${escapeAttr(product.name)}')" class="w-full sm:w-auto text-center px-8 py-3.5 rounded-xl bg-cyber-gradient text-white font-bold hover:shadow-[0_0_20px_rgba(79,172,254,0.4)] transition-all active:scale-95">Beli Sekarang</button>`
+                            }
                         </div>
 
                         <div class="space-y-6">
                             <div>
                                 <h3 class="text-lg sm:text-xl font-semibold text-white mb-3 border-b border-white/10 pb-2 flex items-center">
                                     <svg class="w-5 h-5 mr-2 text-rdncyan" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z"></path></svg>
-                                    Spesifikasi Utama
+                                    Spesifikasi
                                 </h3>
-                                <ul class="text-gray-300 text-sm sm:text-base space-y-2">
-                                    <li><strong class="text-white">Prosesor:</strong> AMD Ryzen™ 5 5600H (6C/12T, up to 4.2GHz)</li>
-                                    <li><strong class="text-white">RAM:</strong> <span class="text-rdncyan font-semibold">24 GB DDR4 Dual Channel</span> (V-Gen 16GB + Samsung 8GB)</li>
-                                    <li><strong class="text-white">Grafis:</strong> AMD Radeon RX Vega 7</li>
-                                    <li><strong class="text-white">Penyimpanan:</strong> INTEL SSD PEKNUS 512 GB NVMe PCIe</li>
-                                </ul>
+                                ${specLines.length > 0
+                                    ? `<ul class="text-gray-300 text-sm sm:text-base space-y-2 list-disc list-inside">${specLines.map(s => `<li>${s}</li>`).join('')}</ul>`
+                                    : `<p class="text-gray-500 text-sm">Belum ada detail spesifikasi untuk produk ini.</p>`
+                                }
                             </div>
+
                             <div>
                                 <h3 class="text-lg sm:text-xl font-semibold text-white mb-3 border-b border-white/10 pb-2 flex items-center">
-                                    <svg class="w-5 h-5 mr-2 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                                    Kondisi Riil Unit
+                                    <svg class="w-5 h-5 mr-2 text-rdncyan" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                                    Kondisi
                                 </h3>
-                                <ul class="text-gray-300 text-sm sm:text-base space-y-2 list-disc list-inside">
-                                    <li>Fisik mulus 95% (minim bekas pemakaian, no penyok).</li>
-                                    <li>Fungsi normal 100% (Wi-Fi, BT, Webcam, Speaker).</li>
-                                    <li>Kesehatan baterai prima (awet 3-5 jam).</li>
-                                    <li>Layar jernih (Anti-glare, bebas white spot).</li>
-                                </ul>
-                                <p class="text-xs sm:text-sm text-gray-500 mt-3">*Kelengkapan: Unit, Charger Original, Bonus Tas Jinjing Premium.</p>
+                                ${conditionLines.length > 0
+                                    ? `<ul class="text-gray-300 text-sm sm:text-base space-y-2 list-disc list-inside">${conditionLines.map(s => `<li>${s}</li>`).join('')}</ul>`
+                                    : `<p class="text-gray-500 text-sm">Belum ada informasi kondisi unit.</p>`
+                                }
                             </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
 
-            <!-- PRODUCT 2 DETAIL (PC GAMING) -->
-            <div id="detail-pc" class="hidden">
-                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12">
-                    <!-- Images -->
-                    <div class="space-y-3 sm:space-y-4">
-                        <div class="w-full h-[250px] sm:h-[350px] md:h-[450px] rounded-2xl overflow-hidden glass-panel relative">
-                            <img src="https://placehold.co/800x600/0f172a/8b5cf6?text=PC+Gaming+Setup" alt="PC Gaming Main" class="w-full h-full object-cover">
-                        </div>
-                        <div class="grid grid-cols-4 gap-2 sm:gap-3">
-                            <div class="gallery-img-container h-16 sm:h-20 md:h-24" onclick="openModal('https://placehold.co/800x600/0f172a/ffffff?text=Tampak+Samping+Case')">
-                                <img src="https://placehold.co/200x200/0f172a/ffffff?text=Case" alt="Thumb" class="w-full h-full object-cover">
-                            </div>
-                            <div class="gallery-img-container h-16 sm:h-20 md:h-24" onclick="openModal('https://placehold.co/800x600/0f172a/ffffff?text=Interior+Komponen')">
-                                <img src="https://placehold.co/200x200/0f172a/ffffff?text=Interior" alt="Thumb" class="w-full h-full object-cover">
-                            </div>
-                            <div class="gallery-img-container h-16 sm:h-20 md:h-24" onclick="openModal('https://placehold.co/800x600/0f172a/ffffff?text=Info+Sistem+Win11')">
-                                <img src="https://placehold.co/200x200/0f172a/ffffff?text=SysInfo" alt="Thumb" class="w-full h-full object-cover">
-                            </div>
-                            <div class="gallery-img-container h-16 sm:h-20 md:h-24 flex items-center justify-center bg-white/5 rounded-xl border border-white/10 hover:bg-white/10" onclick="alert('Membuka foto lainnya.')">
-                                <span class="text-xs sm:text-sm font-medium text-purple-400">+ Foto Lain</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Info -->
-                    <div class="flex flex-col">
-                        <div class="inline-block px-3 py-1 rounded-full bg-red-500/20 text-red-400 border border-red-500/30 text-[10px] sm:text-xs font-bold tracking-wider uppercase mb-3 w-fit">
-                            Huge Discount
-                        </div>
-                        <h2 class="font-jakarta text-2xl sm:text-3xl md:text-4xl font-bold text-white mb-2">Custom PC Gaming</h2>
-                        <p class="text-sm sm:text-base text-gray-400 mb-6 font-medium">Siap Libas Game eSports & AAA</p>
-
-                        <div class="p-4 sm:p-6 rounded-2xl bg-white/5 border border-white/10 mb-8 flex flex-col sm:flex-row justify-between sm:items-center gap-4">
-                            <div>
-                                <p class="text-xs sm:text-sm text-gray-500 mb-1 line-through decoration-red-500">Rp 10.850.000</p>
-                                <p class="font-jakarta text-2xl sm:text-3xl md:text-4xl font-bold text-white">Rp 7.000.000</p>
-                            </div>
-                            <button onclick="scrollToForm('Custom PC Gaming')" class="w-full sm:w-auto text-center px-8 py-3.5 rounded-xl bg-white text-deepnavy font-bold hover:bg-gray-200 transition-colors shadow-[0_0_15px_rgba(255,255,255,0.2)] active:scale-95">
-                                Nego Sekarang
-                            </button>
-                        </div>
-
-                        <div class="space-y-6">
                             <div>
                                 <h3 class="text-lg sm:text-xl font-semibold text-white mb-3 border-b border-white/10 pb-2 flex items-center">
-                                    <svg class="w-5 h-5 mr-2 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14M5 12a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v4a2 2 0 01-2 2M5 12a2 2 0 00-2 2v4a2 2 0 002 2h14a2 2 0 002-2v-4a2 2 0 00-2-2m-2-4h.01M17 16h.01"></path></svg>
-                                    Spesifikasi Lengkap
+                                    <svg class="w-5 h-5 mr-2 text-rdncyan" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 12h14M5 16h14"></path></svg>
+                                    Kelengkapan
                                 </h3>
-                                <ul class="text-gray-300 text-sm sm:text-base space-y-2">
-                                    <li><strong class="text-white">Processor:</strong> AMD Ryzen 5 3500 (6C/6T @3.59 GHz)</li>
-                                    <li><strong class="text-white">VGA/GPU:</strong> GALAX GTX 1650 SUPER 4GB GDDR6</li>
-                                    <li><strong class="text-white">RAM:</strong> 32GB DDR4 (2x16GB Apacer Samsung Die)</li>
-                                    <li><strong class="text-white">Penyimpanan:</strong> 512GB NVMe M.2 ADATA (Health 98%)</li>
-                                    <li><strong class="text-white">Motherboard:</strong> Gigabyte B450M S2H AM4</li>
-                                    <li><strong class="text-white">PSU & Case:</strong> Seasonic 500W 80+ Bronze & Cube Gaming</li>
-                                    <li><strong class="text-white">OS & Ekstra:</strong> Windows 11 Pro, Wi-Fi + BT Vention</li>
-                                </ul>
+                                ${completenessLines.length > 0
+                                    ? `<ul class="text-gray-300 text-sm sm:text-base space-y-2 list-disc list-inside">${completenessLines.map(s => `<li>${s}</li>`).join('')}</ul>`
+                                    : `<p class="text-gray-500 text-sm">Belum ada informasi kelengkapan unit.</p>`
+                                }
                             </div>
                         </div>
                     </div>
                 </div>
-            </div>
+            `;
 
-            <!-- Global Form (Muncul di bawah Detail) -->
-            <div id="nego-section" class="mt-16 sm:mt-24 max-w-3xl mx-auto pt-10 border-t border-white/10 scroll-mt-24">
-                <div class="glass-panel rounded-3xl p-5 sm:p-8 md:p-12 text-center shadow-2xl">
-                    <h2 class="font-jakarta text-2xl sm:text-3xl font-bold text-white mb-3">Tertarik? Mari Diskusi</h2>
-                    <p class="text-sm sm:text-base text-gray-400 mb-6 sm:mb-8">Isi formulir ini untuk terhubung langsung ke WhatsApp penjual dengan rapi.</p>
-
-                    <form id="waForm" class="space-y-4 sm:space-y-5 text-left">
-                        <div>
-                            <label class="block text-xs sm:text-sm font-medium text-gray-300 mb-1">Nama Lengkap</label>
-                            <input type="text" id="buyerName" required class="w-full bg-deepnavy/50 border border-white/10 rounded-xl px-4 py-3 sm:py-4 text-sm sm:text-base text-white focus:outline-none focus:border-rdncyan focus:ring-1 focus:ring-rdncyan transition-colors" placeholder="Masukkan nama Anda">
-                        </div>
-                        
-                        <div>
-                            <label class="block text-xs sm:text-sm font-medium text-gray-300 mb-1">Pilih Produk</label>
-                            <select id="selectedProduct" required class="w-full bg-deepnavy/50 border border-white/10 rounded-xl px-4 py-3 sm:py-4 text-sm sm:text-base text-white focus:outline-none focus:border-rdncyan focus:ring-1 focus:ring-rdncyan appearance-none">
-                                <option value="" disabled selected>Pilih unit yang diminati</option>
-                                <option value="ASUS Vivobook M1403QA">ASUS Vivobook M1403QA (Rp 5.499.000)</option>
-                                <option value="Custom PC Gaming">Custom PC Gaming (Rp 7.000.000)</option>
-                            </select>
-                        </div>
-
-                        <div>
-                            <label class="block text-xs sm:text-sm font-medium text-gray-300 mb-1">Metode Transaksi</label>
-                            <select id="transactionMethod" required class="w-full bg-deepnavy/50 border border-white/10 rounded-xl px-4 py-3 sm:py-4 text-sm sm:text-base text-white focus:outline-none focus:border-rdncyan focus:ring-1 focus:ring-rdncyan appearance-none">
-                                <option value="" disabled selected>Pilih metode pengiriman/pertemuan</option>
-                                <option value="COD Cileungsi/Cibubur">COD Area Cileungsi / Cibubur</option>
-                                <option value="COD Jabodetabek">COD Jabodetabek (S&K Berlaku)</option>
-                                <option value="Rekber Tokopedia">Rekber Tokopedia</option>
-                                <option value="Rekber Shopee">Rekber Shopee</option>
-                                <option value="Gojek/Grab">Kirim via Gojek/Grab (Instan)</option>
-                            </select>
-                        </div>
-
-                        <div>
-                            <label class="block text-xs sm:text-sm font-medium text-gray-300 mb-1">Tawaran Harga Nego (Opsional)</label>
-                            <input type="text" id="offerPrice" class="w-full bg-deepnavy/50 border border-white/10 rounded-xl px-4 py-3 sm:py-4 text-sm sm:text-base text-white focus:outline-none focus:border-rdncyan focus:ring-1 focus:ring-rdncyan transition-colors" placeholder="Cth: Rp 5.200.000">
-                        </div>
-
-                        <div>
-                            <label class="block text-xs sm:text-sm font-medium text-gray-300 mb-1">Catatan Tambahan</label>
-                            <textarea id="extraNotes" rows="3" class="w-full bg-deepnavy/50 border border-white/10 rounded-xl px-4 py-3 sm:py-4 text-sm sm:text-base text-white focus:outline-none focus:border-rdncyan focus:ring-1 focus:ring-rdncyan transition-colors" placeholder="Ada pertanyaan mengenai kondisi unit?"></textarea>
-                        </div>
-
-                        <button type="submit" class="w-full mt-6 py-4 rounded-xl bg-[#25D366] hover:bg-[#128C7E] text-white font-bold flex items-center justify-center space-x-2 transition-all hover:scale-[1.02] active:scale-95 shadow-[0_4px_15px_rgba(37,211,102,0.3)]">
-                            <svg class="w-5 h-5 sm:w-6 sm:h-6" fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51a12.8 12.8 0 0 0-.57-.01c-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413Z"/></svg>
-                            <span>Kirim via WhatsApp</span>
-                        </button>
-                    </form>
-                </div>
-            </div>
-
-        </div>
-
-    </main>
-
-    <!-- Footer -->
-    <footer class="border-t border-white/10 bg-[#040812] py-8 text-center mt-auto">
-        <div class="max-w-7xl mx-auto px-4">
-            <span class="font-jakarta font-bold text-xl tracking-tighter text-white block mb-2">
-                RDN<span class="bg-clip-text text-transparent bg-cyber-gradient">STORE</span>
-            </span>
-            <p class="text-gray-500 text-sm mb-4">Transaksi Aman, Nyaman, dan Transparan.</p>
-            <div class="text-gray-400 text-sm mb-6 space-y-1">
-                <p>📍 Melayani COD: Cileungsi, Cibubur, dan Jabodetabek</p>
-                <p>👤 Penjual: <span class="font-semibold text-white">Raden Antasena Kartasasmita</span></p>
-            </div>
-            <p class="text-xs text-gray-600">&copy; 2024 RDNSTORE. All Rights Reserved.</p>
-        </div>
-    </footer>
-
-    <!-- Lightbox Modal -->
-    <div id="lightbox" class="fixed inset-0 z-[100] bg-black/95 hidden items-center justify-center opacity-0 transition-opacity duration-300 p-4">
-        <div class="relative w-full max-w-5xl">
-            <button onclick="closeModal()" class="absolute top-3 right-3 sm:top-4 sm:right-4 text-white hover:text-red-500 transition-colors p-2 bg-black/60 rounded-full z-10">
-                <svg class="w-6 h-6 sm:w-8 sm:h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
-            </button>
-            <div class="rounded-2xl overflow-hidden glass-panel p-2 sm:p-4">
-                <img id="lightboxImg" src="" alt="Preview" class="w-full max-h-[75vh] object-contain rounded-xl shadow-2xl">
-                <div class="mt-4 text-center px-2 sm:px-4">
-                    <h3 id="lightboxTitle" class="text-lg sm:text-xl font-semibold text-white"></h3>
-                    <p id="lightboxDescription" class="text-sm sm:text-base text-gray-300 mt-2"></p>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Scripts -->
-    <script>
-        // --- 1. GSAP Animations ---
-        gsap.from(".gsap-hero", {
-            y: 30,
-            opacity: 0,
-            duration: 1,
-            stagger: 0.2,
-            ease: "power3.out",
-            delay: 0.1
-        });
-
-        // --- 2. View Manager (SPA Logic) ---
-        function showDetail(productId) {
+            document.getElementById('detail-content').innerHTML = detailHtml;
             document.getElementById('view-home').classList.add('hidden');
             document.getElementById('view-detail').classList.remove('hidden');
-            
-            document.getElementById('detail-laptop').classList.add('hidden');
-            document.getElementById('detail-pc').classList.add('hidden');
-            
-            document.getElementById('detail-' + productId).classList.remove('hidden');
-            
-            const select = document.getElementById('selectedProduct');
-            if(productId === 'laptop') select.value = 'ASUS Vivobook M1403QA';
-            if(productId === 'pc') select.value = 'Custom PC Gaming';
+            document.getElementById('selectedProduct').value = product.name;
 
             window.scrollTo({ top: 0, behavior: 'auto' });
+        }
+
+        function escapeAttr(str) {
+            return String(str).replace(/'/g, "\\'").replace(/"/g, '&quot;').replace(/\n/g, ' ');
         }
 
         function showHome() {
             document.getElementById('view-detail').classList.add('hidden');
             document.getElementById('view-home').classList.remove('hidden');
-            
             window.scrollTo({ top: 0, behavior: 'auto' });
         }
 
@@ -522,7 +773,7 @@
             formSection.scrollIntoView({ behavior: 'smooth' });
         }
 
-        // --- 3. Lightbox Logic ---
+        // --- 8. LIGHTBOX LOGIC ---
         const lightbox = document.getElementById('lightbox');
         const lightboxImg = document.getElementById('lightboxImg');
 
@@ -533,7 +784,7 @@
             lightbox.classList.remove('hidden');
             lightbox.classList.add('flex');
             setTimeout(() => { lightbox.classList.remove('opacity-0'); }, 10);
-            document.body.style.overflow = 'hidden'; 
+            document.body.style.overflow = 'hidden';
         }
 
         function closeModal() {
@@ -550,22 +801,22 @@
             if (e.target === lightbox) closeModal();
         });
 
-        // --- 4. WhatsApp Form Logic ---
-        document.getElementById('waForm').addEventListener('submit', function(e) {
+        // --- 9. WHATSAPP FORM LOGIC ---
+        document.getElementById('waForm').addEventListener('submit', function (e) {
             e.preventDefault();
             const name = document.getElementById('buyerName').value;
             const product = document.getElementById('selectedProduct').value;
             const method = document.getElementById('transactionMethod').value;
             const offer = document.getElementById('offerPrice').value || 'Sesuai Harga Tertera';
             const notes = document.getElementById('extraNotes').value || 'Tidak ada catatan khusus.';
-            const phone = "6281385869226";
+            const phone = CONFIG.whatsappNumber;
 
             const message = `Halo Kang Raden, perkenalkan saya *${name}*.\n\nSaya tertarik dengan produk RDNSTORE yang ada di website:\n🛒 *Unit:* ${product}\n🤝 *Metode Transaksi:* ${method}\n💰 *Penawaran Harga:* ${offer}\n\n📝 *Catatan Tambahan:*\n_${notes}_\n\nApakah unit tersebut masih tersedia? Terima kasih.`;
-            
+
             window.open(`https://wa.me/${phone}?text=${encodeURIComponent(message)}`, '_blank');
         });
 
-        // --- 5. Mobile Menu Logic ---
+        // --- 10. MOBILE MENU LOGIC ---
         const mobileMenuBtn = document.getElementById('mobileMenuBtn');
         const mobileMenu = document.getElementById('mobileMenu');
         const menuIcon = document.getElementById('menuIcon');
@@ -595,6 +846,266 @@
                 nav.classList.remove('shadow-lg');
                 nav.style.background = 'rgba(7, 12, 25, 0.85)';
             }
+        });
+
+        // --- 11. GSAP HERO ANIMATION ---
+        gsap.from(".gsap-hero", {
+            y: 30,
+            opacity: 0,
+            duration: 1,
+            stagger: 0.2,
+            ease: "power3.out",
+            delay: 0.1
+        });
+
+        // ================= ADMIN PANEL LOGIC ================= //
+
+        // --- 12. AUTH ---
+        function openAdminAuth() {
+            Swal.fire({
+                title: 'Akses Admin',
+                input: 'password',
+                inputPlaceholder: 'Masukkan Password',
+                background: '#070c19',
+                color: '#fff',
+                confirmButtonColor: '#00f2fe',
+                showCancelButton: true,
+                cancelButtonColor: '#4b5563',
+            }).then((result) => {
+                if (result.value === CONFIG.adminPassword) {
+                    document.getElementById('admin-view').classList.remove('hide');
+                    document.getElementById('public-view').classList.add('hide');
+                    renderAdminTable();
+                    lucide.createIcons();
+                } else if (result.value) {
+                    Swal.fire({ title: 'Akses Ditolak', text: 'Password salah!', icon: 'error', background: '#070c19', color: '#fff' });
+                }
+            });
+        }
+
+        function closeAdmin() {
+            document.getElementById('admin-view').classList.add('hide');
+            document.getElementById('public-view').classList.remove('hide');
+        }
+
+        function renderAdminTable() {
+            const tbody = document.getElementById('admin-table-body');
+            if (!tbody) return;
+            tbody.innerHTML = '';
+
+            state.products.forEach(product => {
+                const coverImage = product.images && product.images.length > 0 ? product.images[0] : 'https://placehold.co/100x100?text=NoImg';
+                const catLabel = categoryLabels[product.category] || product.category;
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-white/5 transition";
+                tr.innerHTML = `
+                    <td class="p-4 flex items-center gap-4">
+                        <img src="${coverImage}" class="w-12 h-12 rounded bg-white/10 object-cover">
+                        <div>
+                            <p class="font-bold text-white">${product.name}</p>
+                            <p class="text-xs text-slate-400">ID: ${product.id}</p>
+                        </div>
+                    </td>
+                    <td class="p-4 text-slate-300">${catLabel}</td>
+                    <td class="p-4 text-rdncyan font-medium">${formatRupiah(product.price)}</td>
+                    <td class="p-4">
+                        <span class="px-2 py-1 rounded text-xs font-bold ${product.status === 'sold' ? 'bg-red-500/20 text-red-400' : 'bg-emerald-500/20 text-emerald-400'}">
+                            ${(product.status || 'available').toUpperCase()}
+                        </span>
+                    </td>
+                    <td class="p-4 text-right">
+                        <button onclick="editProduct('${product.id}')" class="text-blue-400 hover:text-blue-300 p-2"><i data-lucide="edit" class="w-4 h-4"></i></button>
+                        <button onclick="deleteProduct('${product.id}')" class="text-red-400 hover:text-red-300 p-2"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+            lucide.createIcons();
+        }
+
+        // --- 13. PRODUCT FORM (ADD/EDIT) ---
+        function openProductForm(product = null) {
+            document.getElementById('form-modal').classList.remove('hide');
+            state.formImages = [];
+            state.pendingUploadFiles = [];
+
+            if (product) {
+                document.getElementById('modal-title').innerText = 'Edit Produk';
+                document.getElementById('form-id').value = product.id;
+                document.getElementById('form-name').value = product.name;
+                document.getElementById('form-category').value = product.category;
+                document.getElementById('form-price').value = product.price;
+                document.getElementById('form-originalPrice').value = product.originalPrice || '';
+                document.getElementById('form-description').value = product.description || '';
+                document.getElementById('form-specs').value = product.specs || '';
+                document.getElementById('form-condition').value = product.conditionUnit || '';
+                document.getElementById('form-completeness').value = product.completenessUnit || '';
+                document.getElementById('form-status').value = product.status || 'available';
+                state.formImages = [...(product.images || [])];
+            } else {
+                document.getElementById('modal-title').innerText = 'Tambah Produk Baru';
+                document.getElementById('product-form').reset();
+                document.getElementById('form-id').value = '';
+                document.getElementById('form-condition').value = '';
+                document.getElementById('form-completeness').value = '';
+            }
+            renderFormImagePreviews();
+            lucide.createIcons();
+        }
+
+        function closeProductForm() {
+            document.getElementById('form-modal').classList.add('hide');
+        }
+
+        function editProduct(id) {
+            const product = state.products.find(p => p.id === id);
+            if (product) openProductForm(product);
+        }
+
+        async function deleteProduct(id) {
+            const result = await Swal.fire({
+                title: 'Hapus Produk?',
+                text: "Data yang dihapus tidak bisa dikembalikan!",
+                icon: 'warning',
+                showCancelButton: true,
+                background: '#070c19', color: '#fff',
+                confirmButtonColor: '#ef4444', cancelButtonColor: '#4b5563',
+                confirmButtonText: 'Ya, Hapus!'
+            });
+
+            if (result.isConfirmed) {
+                Swal.showLoading();
+                try {
+                    await pushToDatabase('delete', { productId: id });
+                    state.products = state.products.filter(p => p.id !== id);
+                    renderAdminTable();
+                    renderStorefront();
+                    renderProductOptions();
+                    Swal.fire({ title: 'Terhapus!', text: 'Produk telah dihapus.', icon: 'success', background: '#070c19', color: '#fff' });
+                } catch (e) {
+                    Swal.fire({ title: 'Error', text: 'Gagal menghapus produk.', icon: 'error', background: '#070c19', color: '#fff' });
+                }
+            }
+        }
+
+        // --- 14. IMAGE MANAGEMENT IN FORM ---
+        function handleImageSelection(event) {
+            const files = Array.from(event.target.files);
+            state.pendingUploadFiles.push(...files);
+
+            files.forEach(file => {
+                const blobUrl = URL.createObjectURL(file);
+                state.formImages.push({ type: 'pending', url: blobUrl, file: file });
+            });
+            renderFormImagePreviews();
+            event.target.value = '';
+        }
+
+        function removeFormImage(index) {
+            const img = state.formImages[index];
+            if (img && img.type === 'pending') {
+                state.pendingUploadFiles = state.pendingUploadFiles.filter(f => f !== img.file);
+            }
+            state.formImages.splice(index, 1);
+            renderFormImagePreviews();
+        }
+
+        function renderFormImagePreviews() {
+            const container = document.getElementById('image-preview-container');
+            container.innerHTML = '';
+
+            state.formImages.forEach((img, index) => {
+                const srcUrl = typeof img === 'string' ? img : img.url;
+                const div = document.createElement('div');
+                div.className = "relative group rounded-lg overflow-hidden bg-white/5 border border-white/10 aspect-square";
+                div.innerHTML = `
+                    <img src="${srcUrl}" class="w-full h-full object-cover">
+                    ${typeof img === 'object' ? '<div class="absolute top-1 left-1 bg-rdncyan text-xs text-deepnavy px-1.5 rounded font-bold">Baru</div>' : ''}
+                    <button type="button" onclick="removeFormImage(${index})" class="absolute inset-0 bg-red-500/80 flex items-center justify-center opacity-0 group-hover:opacity-100 transition text-white">
+                        <i data-lucide="trash-2" class="w-6 h-6"></i>
+                    </button>
+                `;
+                container.appendChild(div);
+            });
+            lucide.createIcons();
+        }
+
+        // --- 15. SAVE PRODUCT ---
+        async function submitProductForm() {
+            const btn = document.getElementById('btn-save-product');
+            const originalText = btn.innerHTML;
+
+            const name = document.getElementById('form-name').value;
+            const price = document.getElementById('form-price').value;
+            if (!name || !price) return Swal.fire({ title: 'Oops', text: 'Nama dan Harga wajib diisi!', icon: 'warning', background: '#070c19', color: '#fff' });
+
+            btn.innerHTML = `<div class="spinner w-4 h-4 border-2"></div> Menyimpan...`;
+            btn.disabled = true;
+
+            try {
+                // 1. Upload gambar pending ke Cloudinary
+                let finalImageUrls = [];
+                const filesToUpload = state.formImages.filter(img => typeof img === 'object').map(img => img.file);
+
+                if (filesToUpload.length > 0) {
+                    const uploaded = await uploadImagesToCloudinary(filesToUpload);
+                    let uploadIdx = 0;
+                    state.formImages.forEach(img => {
+                        if (typeof img === 'string') {
+                            finalImageUrls.push(img);
+                        } else {
+                            finalImageUrls.push(uploaded[uploadIdx]);
+                            uploadIdx++;
+                        }
+                    });
+                } else {
+                    finalImageUrls = state.formImages;
+                }
+
+                // 2. Susun data produk
+                const productData = {
+                    id: document.getElementById('form-id').value || generateId(),
+                    name: name,
+                    category: document.getElementById('form-category').value,
+                    price: price,
+                    originalPrice: document.getElementById('form-originalPrice').value,
+                    description: document.getElementById('form-description').value,
+                    specs: document.getElementById('form-specs').value,
+                    conditionUnit: document.getElementById('form-condition').value.trim(),
+                    completenessUnit: document.getElementById('form-completeness').value.trim(),
+                    status: document.getElementById('form-status').value,
+                    images: finalImageUrls
+                };
+
+                // 3. Kirim ke Google Sheets
+                await pushToDatabase('save', { product: productData });
+
+                // 4. Update state lokal
+                const existingIndex = state.products.findIndex(p => p.id === productData.id);
+                if (existingIndex > -1) {
+                    state.products[existingIndex] = productData;
+                } else {
+                    state.products.push(productData);
+                }
+
+                closeProductForm();
+                renderAdminTable();
+                renderStorefront();
+                renderProductOptions();
+                Swal.fire({ title: 'Berhasil!', text: 'Produk tersimpan', icon: 'success', background: '#070c19', color: '#fff' });
+
+            } catch (error) {
+                console.error(error);
+                Swal.fire({ title: 'Gagal', text: 'Terjadi kesalahan saat menyimpan.', icon: 'error', background: '#070c19', color: '#fff' });
+            } finally {
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+            }
+        }
+
+        // --- 16. INITIALIZATION ---
+        window.addEventListener('DOMContentLoaded', () => {
+            fetchProducts();
         });
     </script>
 </body>
