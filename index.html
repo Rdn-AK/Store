@@ -225,12 +225,13 @@
                         <p class="gsap-hero font-inter text-sm sm:text-base md:text-lg text-gray-400 max-w-2xl mx-auto mb-8 sm:mb-10 leading-relaxed">
                             Kami menyajikan gadget & laptop secondhand pilihan dengan transparansi kondisi 100%. Mulus, fungsional, dan siap pakai.
                         </p>
-                        <div class="gsap-hero flex flex-wrap justify-center gap-3">
-                            <button onclick="filterCategory('semua')" data-filter="semua" class="filter-btn active px-5 py-2.5 rounded-full text-sm font-semibold glass-panel hover:bg-white/10 transition-all">Semua Produk</button>
-                            <button onclick="filterCategory('iphone')" data-filter="iphone" class="filter-btn px-5 py-2.5 rounded-full text-sm font-semibold glass-panel hover:bg-white/10 transition-all">iPhone</button>
-                            <button onclick="filterCategory('android')" data-filter="android" class="filter-btn px-5 py-2.5 rounded-full text-sm font-semibold glass-panel hover:bg-white/10 transition-all">Android</button>
-                            <button onclick="filterCategory('laptop')" data-filter="laptop" class="filter-btn px-5 py-2.5 rounded-full text-sm font-semibold glass-panel hover:bg-white/10 transition-all">Laptop</button>
-                            <button onclick="filterCategory('accessories')" data-filter="accessories" class="filter-btn px-5 py-2.5 rounded-full text-sm font-semibold glass-panel hover:bg-white/10 transition-all">Aksesoris</button>
+                        <div class="gsap-hero flex justify-center">
+                            <div class="relative w-full max-w-xs sm:max-w-sm">
+                                <select id="category-filter-select" onchange="filterCategory(this.value)" class="w-full appearance-none glass-panel text-white text-sm font-semibold pl-5 pr-11 py-3 rounded-full focus:outline-none focus:border-rdncyan/50 focus:ring-1 focus:ring-rdncyan/40 cursor-pointer hover:bg-white/10 transition-all">
+                                    <option value="semua" class="bg-deepnavy">Semua Produk</option>
+                                </select>
+                                <svg class="w-4 h-4 text-rdncyan absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                            </div>
                         </div>
                     </div>
                 </section>
@@ -367,6 +368,9 @@
                 <h2 class="font-jakarta font-bold text-base sm:text-lg text-white">Admin Panel RDNSTORE</h2>
             </div>
             <div class="flex items-center gap-2 sm:gap-4">
+                <button onclick="openCategoryManager()" class="bg-white/5 border border-white/10 text-white px-3 sm:px-4 py-2 rounded-lg font-medium hover:bg-white/10 transition flex items-center gap-2 text-xs sm:text-sm">
+                    <i data-lucide="tags" class="w-4 h-4"></i> <span class="hidden sm:inline">Kelola Kategori</span>
+                </button>
                 <button onclick="openProductForm()" class="bg-rdncyan text-deepnavy px-3 sm:px-4 py-2 rounded-lg font-medium hover:bg-rdnblue transition flex items-center gap-2 text-xs sm:text-sm">
                     <i data-lucide="plus" class="w-4 h-4"></i> <span class="hidden sm:inline">Tambah Produk</span>
                 </button>
@@ -464,10 +468,7 @@
                         <div class="space-y-2">
                             <label class="text-sm text-slate-400">Kategori</label>
                             <select id="form-category" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-rdncyan transition appearance-none">
-                                <option value="iphone" class="bg-deepnavy">iPhone</option>
-                                <option value="android" class="bg-deepnavy">Android</option>
-                                <option value="laptop" class="bg-deepnavy">Laptop</option>
-                                <option value="accessories" class="bg-deepnavy">Aksesoris</option>
+                                <!-- Opsi kategori dirender otomatis via JS (renderCategoryFormOptions) -->
                             </select>
                         </div>
                         <div class="space-y-2">
@@ -537,13 +538,40 @@
         </div>
     </div>
 
+    <!-- ================= CATEGORY MANAGER MODAL ================= -->
+    <div id="category-modal" class="hide fixed inset-0 bg-black/80 z-[215] flex items-center justify-center p-4 backdrop-blur-sm">
+        <div class="bg-deepnavy border border-white/10 rounded-2xl w-full max-w-md max-h-[85vh] flex flex-col shadow-2xl relative overflow-hidden">
+            <div class="p-6 border-b border-white/10 flex justify-between items-center bg-white/5 shrink-0">
+                <h3 class="text-xl font-jakarta font-bold text-white">Kelola Kategori</h3>
+                <button onclick="closeCategoryManager()" class="text-slate-400 hover:text-white"><i data-lucide="x"></i></button>
+            </div>
+            <div class="p-6 overflow-y-auto flex-grow space-y-5">
+                <div>
+                    <label class="text-sm text-slate-400 mb-2 block">Tambah Kategori Baru</label>
+                    <div class="flex gap-2">
+                        <input type="text" id="new-category-name" placeholder="Contoh: Tablet" class="flex-1 bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:border-rdncyan transition">
+                        <button onclick="addCategoryHandler()" class="bg-rdncyan text-deepnavy px-4 rounded-xl font-bold hover:bg-rdnblue transition flex items-center justify-center shrink-0">
+                            <i data-lucide="plus" class="w-5 h-5"></i>
+                        </button>
+                    </div>
+                </div>
+                <div>
+                    <label class="text-sm text-slate-400 mb-2 block">Daftar Kategori</label>
+                    <div id="category-manager-list" class="space-y-2.5">
+                        <!-- Daftar kategori dirender di sini -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
 
     <!-- ================= JAVASCRIPT LOGIC ================= -->
     <script>
         // --- 1. CONFIGURATION ---
         // Ganti googleSheetUrl & kredensial cloudinary sesuai akun Anda sendiri.
         const CONFIG = {
-            googleSheetUrl: 'https://script.google.com/macros/s/AKfycbxJ2aQA4kZ-ZWk6SkQjPItV2aSW3pNrSSzUp-NvcE0-ysLD1iuBx6XG0GlcgydtHgJj/exec',
+            googleSheetUrl: 'https://script.google.com/macros/s/AKfycbyt4Rm0YgitAW4FE21RJTultjS49_ECYXgExh0lmLhBaHr67XZh_qZspgm0d1A1oJiL7w/exec',
             cloudinary: {
                 cloudName: 'sec03zqs',
                 apiKey: '787918577271353',
@@ -553,17 +581,35 @@
             adminPassword: 'sena2008' // Ganti password admin sesuai keinginan
         };
 
-        const categoryLabels = { iphone: 'iPhone', android: 'Android', laptop: 'Laptop', accessories: 'Aksesoris' };
-        const categoryColors = { iphone: 'text-rdncyan', android: 'text-green-400', laptop: 'text-rdnindigo', accessories: 'text-purple-400' };
+        // Kategori default (dipakai sebagai fallback jika sheet "Categories" kosong/gagal dimuat)
+        const DEFAULT_CATEGORIES = [
+            { id: 'iphone', label: 'iPhone', color: 'text-rdncyan' },
+            { id: 'android', label: 'Android', color: 'text-green-400' },
+            { id: 'laptop', label: 'Laptop', color: 'text-rdnindigo' },
+            { id: 'accessories', label: 'Aksesoris', color: 'text-purple-400' }
+        ];
+        // Palet warna yang dirotasi otomatis untuk kategori baru yang ditambahkan admin
+        const CATEGORY_COLOR_PALETTE = ['text-rdncyan', 'text-green-400', 'text-rdnindigo', 'text-purple-400', 'text-amber-400', 'text-pink-400', 'text-teal-400', 'text-orange-400'];
 
         // --- 2. STATE MANAGEMENT ---
         let state = {
             products: [],
+            categories: [],       // Diisi dari sheet "Categories" saat fetchCategories()
             currentFilter: 'semua',
             currentDetailId: null,
             formImages: [],       // Gambar produk yang sedang diedit di form (string URL atau object pending)
             pendingUploadFiles: [] // File yang siap diupload ke Cloudinary
         };
+
+        // Helper untuk mengambil label & warna kategori dari state.categories (dengan fallback aman)
+        function getCategoryLabel(catId) {
+            const found = state.categories.find(c => c.id === catId);
+            return found ? found.label : (catId || '-');
+        }
+        function getCategoryColor(catId) {
+            const found = state.categories.find(c => c.id === catId);
+            return found ? (found.color || 'text-rdncyan') : 'text-rdncyan';
+        }
 
         // Initialize Icons
         lucide.createIcons();
@@ -618,6 +664,22 @@
                     setTimeout(() => { loader.style.display = 'none'; }, 300);
                 }
             }
+        }
+
+        // Ambil daftar kategori dari sheet "Categories" (via Apps Script, param ?type=categories)
+        async function fetchCategories() {
+            try {
+                const response = await fetchWithTimeout(`${CONFIG.googleSheetUrl}?type=categories`, { cache: 'no-store' }, 15000);
+                if (!response.ok) throw new Error(`Fetch error: ${response.status} ${response.statusText}`);
+                const data = await response.json();
+                state.categories = (Array.isArray(data) && data.length > 0) ? data : [...DEFAULT_CATEGORIES];
+            } catch (error) {
+                console.error("Error fetching categories, memakai default:", error);
+                state.categories = [...DEFAULT_CATEGORIES];
+            }
+            renderCategoryFilterDropdown();
+            renderCategoryFormOptions();
+            renderCategoryManagerList();
         }
 
         async function pushToDatabase(action, dataObj) {
@@ -684,14 +746,45 @@
 
         function filterCategory(category) {
             state.currentFilter = category;
-            document.querySelectorAll('.filter-btn').forEach(btn => {
-                if (btn.dataset.filter === category) {
-                    btn.classList.add('active');
-                } else {
-                    btn.classList.remove('active');
-                }
-            });
+            const select = document.getElementById('category-filter-select');
+            if (select && select.value !== category) select.value = category;
             renderStorefront();
+        }
+
+        // Isi dropdown filter kategori di beranda berdasarkan state.categories
+        function renderCategoryFilterDropdown() {
+            const select = document.getElementById('category-filter-select');
+            if (!select) return;
+            const currentValue = state.currentFilter;
+            select.innerHTML = '<option value="semua" class="bg-deepnavy">Semua Produk</option>';
+            state.categories.forEach(cat => {
+                const opt = document.createElement('option');
+                opt.value = cat.id;
+                opt.textContent = cat.label;
+                opt.className = 'bg-deepnavy';
+                select.appendChild(opt);
+            });
+            const validValue = currentValue === 'semua' || state.categories.some(c => c.id === currentValue);
+            select.value = validValue ? currentValue : 'semua';
+            if (!validValue) state.currentFilter = 'semua';
+        }
+
+        // Isi dropdown kategori pada form tambah/edit produk di admin
+        function renderCategoryFormOptions() {
+            const select = document.getElementById('form-category');
+            if (!select) return;
+            const currentValue = select.value;
+            select.innerHTML = '';
+            state.categories.forEach(cat => {
+                const opt = document.createElement('option');
+                opt.value = cat.id;
+                opt.textContent = cat.label;
+                opt.className = 'bg-deepnavy';
+                select.appendChild(opt);
+            });
+            if (currentValue && state.categories.some(c => c.id === currentValue)) {
+                select.value = currentValue;
+            }
         }
 
         function renderStorefront() {
@@ -715,8 +808,8 @@
                 const isSold = product.status === 'sold';
                 const hasDiscount = product.originalPrice && parseInt(product.originalPrice) > parseInt(product.price);
                 const discountPct = hasDiscount ? Math.round((1 - (product.price / product.originalPrice)) * 100) : 0;
-                const catLabel = categoryLabels[product.category] || product.category;
-                const catColor = categoryColors[product.category] || 'text-rdncyan';
+                const catLabel = getCategoryLabel(product.category);
+                const catColor = getCategoryColor(product.category);
                 const specLines = getProductDetailLines(product).slice(0, 3);
 
                 const card = document.createElement('div');
@@ -775,7 +868,7 @@
             const images = (product.images && product.images.length > 0) ? product.images : ['https://placehold.co/800x600/0f172a/4facfe?text=No+Image'];
             const isSold = product.status === 'sold';
             const hasDiscount = product.originalPrice && parseInt(product.originalPrice) > parseInt(product.price);
-            const catLabel = categoryLabels[product.category] || product.category;
+            const catLabel = getCategoryLabel(product.category);
             const specLines = String(product.specs || '').split('\n').map(s => s.trim()).filter(Boolean);
             const conditionLines = String((product.conditionUnit ?? product.condition) || '').split('\n').map(s => s.trim()).filter(Boolean);
             const completenessLines = String((product.completenessUnit ?? product.completeness) || '').split('\n').map(s => s.trim()).filter(Boolean);
@@ -1040,6 +1133,114 @@
             document.getElementById('public-view').classList.remove('hide');
         }
 
+        // --- 12c. CATEGORY MANAGEMENT ---
+        function openCategoryManager() {
+            document.getElementById('category-modal').classList.remove('hide');
+            renderCategoryManagerList();
+            lucide.createIcons();
+        }
+
+        function closeCategoryManager() {
+            document.getElementById('category-modal').classList.add('hide');
+            document.getElementById('new-category-name').value = '';
+        }
+
+        function generateCategorySlug(name) {
+            let base = name.toLowerCase().trim().replace(/[^a-z0-9]+/g, '');
+            if (!base) base = 'kategori' + Date.now();
+            let slug = base;
+            let counter = 2;
+            while (state.categories.some(c => c.id === slug)) {
+                slug = base + counter;
+                counter++;
+            }
+            return slug;
+        }
+
+        function renderCategoryManagerList() {
+            const list = document.getElementById('category-manager-list');
+            if (!list) return;
+            list.innerHTML = '';
+
+            if (state.categories.length === 0) {
+                list.innerHTML = `<p class="text-center text-slate-500 text-sm py-6">Belum ada kategori.</p>`;
+                return;
+            }
+
+            state.categories.forEach(cat => {
+                const count = state.products.filter(p => p.category === cat.id).length;
+                const dotColor = (cat.color || 'text-rdncyan').replace('text-', 'bg-');
+                const row = document.createElement('div');
+                row.className = "flex items-center justify-between gap-3 p-3 glass-panel rounded-xl";
+                row.innerHTML = `
+                    <div class="flex items-center gap-3 min-w-0">
+                        <span class="w-2.5 h-2.5 rounded-full ${dotColor} shrink-0"></span>
+                        <div class="min-w-0">
+                            <p class="font-medium text-white truncate">${cat.label}</p>
+                            <p class="text-xs text-slate-500">${count} produk</p>
+                        </div>
+                    </div>
+                    <button onclick="deleteCategoryHandler('${cat.id}')" class="text-red-400 hover:text-red-300 p-2 shrink-0"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+                `;
+                list.appendChild(row);
+            });
+            lucide.createIcons();
+        }
+
+        async function addCategoryHandler() {
+            const input = document.getElementById('new-category-name');
+            const name = input.value.trim();
+            if (!name) {
+                return Swal.fire({ title: 'Oops', text: 'Nama kategori wajib diisi!', icon: 'warning', background: '#070c19', color: '#fff' });
+            }
+            const id = generateCategorySlug(name);
+            const color = CATEGORY_COLOR_PALETTE[state.categories.length % CATEGORY_COLOR_PALETTE.length];
+            const newCategory = { id, label: name, color };
+
+            try {
+                await pushToDatabase('saveCategory', { category: newCategory });
+                state.categories.push(newCategory);
+                input.value = '';
+                renderCategoryFilterDropdown();
+                renderCategoryFormOptions();
+                renderCategoryManagerList();
+                Swal.fire({ title: 'Berhasil!', text: 'Kategori ditambahkan.', icon: 'success', background: '#070c19', color: '#fff', timer: 1500, showConfirmButton: false });
+            } catch (e) {
+                console.error(e);
+                Swal.fire({ title: 'Gagal', text: 'Tidak dapat menyimpan kategori ke database.', icon: 'error', background: '#070c19', color: '#fff' });
+            }
+        }
+
+        async function deleteCategoryHandler(catId) {
+            const inUse = state.products.filter(p => p.category === catId).length;
+            const result = await Swal.fire({
+                title: 'Hapus Kategori?',
+                html: inUse > 0
+                    ? `Kategori ini masih dipakai <b>${inUse} produk</b>. Produk tersebut tidak akan terhapus, namun perlu diedit ulang kategorinya.`
+                    : 'Kategori akan dihapus secara permanen.',
+                icon: 'warning',
+                showCancelButton: true,
+                background: '#070c19', color: '#fff',
+                confirmButtonColor: '#ef4444', cancelButtonColor: '#4b5563',
+                confirmButtonText: 'Ya, Hapus!'
+            });
+
+            if (!result.isConfirmed) return;
+
+            try {
+                await pushToDatabase('deleteCategory', { categoryId: catId });
+                state.categories = state.categories.filter(c => c.id !== catId);
+                renderCategoryFilterDropdown();
+                renderCategoryFormOptions();
+                renderCategoryManagerList();
+                if (state.currentFilter === catId) filterCategory('semua');
+                Swal.fire({ title: 'Terhapus!', text: 'Kategori telah dihapus.', icon: 'success', background: '#070c19', color: '#fff' });
+            } catch (e) {
+                console.error(e);
+                Swal.fire({ title: 'Error', text: 'Gagal menghapus kategori.', icon: 'error', background: '#070c19', color: '#fff' });
+            }
+        }
+
         function renderAdminTable() {
             const tbody = document.getElementById('admin-table-body');
             const mobileList = document.getElementById('admin-mobile-list');
@@ -1053,7 +1254,7 @@
 
             state.products.forEach(product => {
                 const coverImage = product.images && product.images.length > 0 ? product.images[0] : 'https://placehold.co/100x100?text=NoImg';
-                const catLabel = categoryLabels[product.category] || product.category;
+                const catLabel = getCategoryLabel(product.category);
                 const isSold = product.status === 'sold';
 
                 // --- Desktop table row ---
@@ -1104,7 +1305,7 @@
             const product = state.products.find(p => p.id === id);
             if (!product) return;
             const coverImage = product.images && product.images.length > 0 ? product.images[0] : 'https://placehold.co/400x300?text=NoImg';
-            const catLabel = categoryLabels[product.category] || product.category;
+            const catLabel = getCategoryLabel(product.category);
             const isSold = product.status === 'sold';
 
             document.getElementById('admin-detail-image').src = coverImage;
@@ -1314,6 +1515,7 @@
 
         // --- 16. INITIALIZATION ---
         window.addEventListener('DOMContentLoaded', () => {
+            fetchCategories();
             fetchProducts();
         });
     </script>
