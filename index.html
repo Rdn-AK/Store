@@ -149,9 +149,11 @@
                 </div>
 
                 <!-- Desktop Menu -->
-                <div class="hidden md:flex space-x-8 items-center">
+                <div class="hidden md:flex space-x-6 lg:space-x-8 items-center">
                     <button onclick="showHome()" class="text-sm font-medium text-gray-300 hover:text-white transition-colors">Beranda</button>
                     <button onclick="showHome()" class="text-sm font-medium text-gray-300 hover:text-white transition-colors">Katalog</button>
+                    <div class="h-5 w-px bg-white/10"></div>
+                    <div id="nav-account-area" class="relative"></div>
                 </div>
 
                 <!-- Mobile Menu Button -->
@@ -192,6 +194,9 @@
                     <span class="bg-white/5 p-2 rounded-lg"><i data-lucide="layout-grid" class="w-4 h-4 text-rdncyan"></i></span>
                     Katalog Produk
                 </button>
+
+                <p class="px-3 pt-4 pb-2 text-[11px] font-semibold text-gray-500 uppercase tracking-wider">Akun</p>
+                <div id="mobile-account-area" class="space-y-1.5"></div>
             </div>
 
             <div class="flex-1"></div>
@@ -213,7 +218,7 @@
             <!-- ========================================== -->
             <div id="view-home" class="fade-enter block">
                 <!-- Hero Section -->
-                <section class="relative pt-24 pb-10 sm:pt-32 sm:pb-16 lg:pt-40 lg:pb-20 overflow-hidden px-4">
+                <section class="relative pt-24 pb-10 sm:pt-32 sm:pb-16 lg:pt-40 lg:pb-20 px-4">
                     <div class="max-w-7xl mx-auto text-center relative z-10">
                         <div class="inline-block px-3 py-1 rounded-full bg-rdncyan/10 text-rdncyan border border-rdncyan/20 text-xs sm:text-sm font-semibold mb-4 sm:mb-6">
                             🚀 Tech Premium Bekas Kualitas Teratas
@@ -225,12 +230,28 @@
                         <p class="gsap-hero font-inter text-sm sm:text-base md:text-lg text-gray-400 max-w-2xl mx-auto mb-8 sm:mb-10 leading-relaxed">
                             Kami menyajikan gadget & laptop secondhand pilihan dengan transparansi kondisi 100%. Mulus, fungsional, dan siap pakai.
                         </p>
-                        <div class="gsap-hero flex justify-center">
-                            <div class="relative w-full max-w-xs sm:max-w-sm">
-                                <select id="category-filter-select" onchange="filterCategory(this.value)" class="w-full appearance-none glass-panel text-white text-sm font-semibold pl-5 pr-11 py-3 rounded-full focus:outline-none focus:border-rdncyan/50 focus:ring-1 focus:ring-rdncyan/40 cursor-pointer hover:bg-white/10 transition-all">
-                                    <option value="semua" class="bg-deepnavy">Semua Produk</option>
-                                </select>
-                                <svg class="w-4 h-4 text-rdncyan absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                        <div class="gsap-hero flex flex-col sm:flex-row gap-3 justify-center items-stretch sm:items-center">
+                            <!-- Search Bar -->
+                            <div class="relative w-full sm:w-64 lg:w-72">
+                                <svg class="w-4 h-4 text-gray-400 absolute left-4 top-1/2 -translate-y-1/2 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-4.35-4.35M17 11a6 6 0 11-12 0 6 6 0 0112 0z"></path></svg>
+                                <input type="text" id="search-input" oninput="handleSearchInput(this.value)" placeholder="Cari produk..." class="w-full glass-panel text-white text-sm pl-11 pr-9 py-3 rounded-full focus:outline-none focus:border-rdncyan/50 focus:ring-1 focus:ring-rdncyan/40 placeholder:text-gray-500 hover:bg-white/10 transition-all">
+                                <button type="button" id="search-clear-btn" onclick="clearSearchInput()" class="hide absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-500 hover:text-white transition">
+                                    <i data-lucide="x-circle" class="w-4 h-4"></i>
+                                </button>
+                            </div>
+
+                            <!-- Custom Category Dropdown -->
+                            <div class="relative w-full sm:w-56 lg:w-64" id="category-dropdown-wrapper">
+                                <button type="button" onclick="toggleCategoryDropdown()" id="category-dropdown-btn" class="w-full flex items-center justify-between glass-panel text-white text-sm font-semibold pl-5 pr-4 py-3 rounded-full focus:outline-none hover:bg-white/10 hover:border-rdncyan/30 transition-all">
+                                    <span class="flex items-center gap-2 min-w-0">
+                                        <span id="category-dropdown-dot" class="w-2 h-2 rounded-full bg-rdncyan shrink-0"></span>
+                                        <span id="category-dropdown-label" class="truncate">Semua Produk</span>
+                                    </span>
+                                    <svg id="category-dropdown-chevron" class="w-4 h-4 text-rdncyan shrink-0 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                                </button>
+                                <div id="category-dropdown-panel" class="hide absolute left-0 right-0 mt-2 glass-panel rounded-2xl p-1.5 z-40 shadow-2xl max-h-72 overflow-y-auto fade-enter">
+                                    <!-- Opsi kategori dirender otomatis via JS -->
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -329,8 +350,8 @@
                 </span>
                 <p class="text-gray-500 text-sm mb-4">Transaksi Aman, Nyaman, dan Transparan.</p>
                 <div class="text-gray-400 text-sm mb-6 space-y-1">
-                    <p>📍 Melayani COD: Cileungsi, Cibubur, dan Jabodetabek</p>
-                    <p>👤 Penjual: <span class="font-semibold text-white">Raden Antasena Kartasasmita</span></p>
+                    <p>📍 Gerbang menuju teknologi premium yang lebih terjangkau.</p>
+                    <p>👤 Pemilik: <span class="font-semibold text-white">Raden Antasena Kartasasmita</span></p>
                 </div>
                 <p class="text-xs text-gray-600 mb-4">&copy; 2024 RDNSTORE. All Rights Reserved.</p>
                 <!-- Tombol Rahasia Admin Panel -->
@@ -365,17 +386,17 @@
                 <div class="bg-rdncyan text-deepnavy p-1.5 rounded-lg">
                     <i data-lucide="layout-dashboard" class="w-5 h-5"></i>
                 </div>
-                <h2 class="font-jakarta font-bold text-base sm:text-lg text-white">Admin Panel RDNSTORE</h2>
+                <h2 id="admin-panel-title" class="font-jakarta font-bold text-base sm:text-lg text-white">Admin Panel RDNSTORE</h2>
             </div>
             <div class="flex items-center gap-2 sm:gap-4">
-                <button onclick="openCategoryManager()" class="bg-white/5 border border-white/10 text-white px-3 sm:px-4 py-2 rounded-lg font-medium hover:bg-white/10 transition flex items-center gap-2 text-xs sm:text-sm">
+                <button onclick="openCategoryManager()" id="btn-manage-categories" class="bg-white/5 border border-white/10 text-white px-3 sm:px-4 py-2 rounded-lg font-medium hover:bg-white/10 transition flex items-center gap-2 text-xs sm:text-sm">
                     <i data-lucide="tags" class="w-4 h-4"></i> <span class="hidden sm:inline">Kelola Kategori</span>
                 </button>
                 <button onclick="openProductForm()" class="bg-rdncyan text-deepnavy px-3 sm:px-4 py-2 rounded-lg font-medium hover:bg-rdnblue transition flex items-center gap-2 text-xs sm:text-sm">
                     <i data-lucide="plus" class="w-4 h-4"></i> <span class="hidden sm:inline">Tambah Produk</span>
                 </button>
                 <button onclick="closeAdmin()" class="text-slate-400 hover:text-white transition flex items-center gap-2 text-xs sm:text-sm">
-                    <i data-lucide="log-out" class="w-4 h-4"></i> <span class="hidden sm:inline">Keluar</span>
+                    <i data-lucide="x" class="w-4 h-4"></i> <span class="hidden sm:inline">Tutup</span>
                 </button>
             </div>
         </header>
@@ -390,6 +411,7 @@
                             <tr>
                                 <th class="p-4 font-medium">Produk</th>
                                 <th class="p-4 font-medium">Kategori</th>
+                                <th class="p-4 font-medium">Wilayah</th>
                                 <th class="p-4 font-medium">Harga (IDR)</th>
                                 <th class="p-4 font-medium">Status</th>
                                 <th class="p-4 font-medium text-right">Aksi</th>
@@ -481,6 +503,22 @@
                         </div>
                     </div>
 
+                    <div class="space-y-2 relative" id="form-region-wrapper">
+                        <label class="text-sm text-slate-400">Wilayah Transaksi/Pengiriman</label>
+                        <input type="hidden" id="form-region" value="">
+                        <button type="button" onclick="toggleFormRegionDropdown()" id="form-region-btn" class="w-full flex items-center justify-between bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white text-sm focus:outline-none hover:bg-white/10 hover:border-rdncyan/30 transition-all">
+                            <span class="flex items-center gap-2 min-w-0">
+                                <i data-lucide="map-pin" class="w-4 h-4 text-rdncyan shrink-0"></i>
+                                <span id="form-region-label" class="truncate text-left text-slate-500">Pilih Wilayah</span>
+                            </span>
+                            <svg id="form-region-chevron" class="w-4 h-4 text-rdncyan shrink-0 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                        </button>
+                        <div id="form-region-panel" class="hide absolute left-0 right-0 mt-2 bg-deepnavy border border-white/10 rounded-2xl p-1.5 z-30 shadow-2xl max-h-64 overflow-y-auto fade-enter">
+                            <!-- Opsi wilayah (dari sheet "Regions") dirender otomatis via JS (renderFormRegionOptions) -->
+                        </div>
+                        <p class="text-[11px] text-slate-500">Pilih wilayah COD/pengiriman produk ini. Belum ada di daftar? Pilih "Masukkan Wilayah" di bagian bawah.</p>
+                    </div>
+
                     <div class="space-y-2">
                         <label class="text-sm text-slate-400">Deskripsi Pendek</label>
                         <textarea id="form-description" rows="3" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-rdncyan transition"></textarea>
@@ -502,12 +540,19 @@
                         </div>
                     </div>
 
-                    <div class="space-y-2">
-                        <label class="text-sm text-slate-400">Status Produk</label>
-                        <select id="form-status" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-rdncyan transition appearance-none">
-                            <option value="available" class="bg-deepnavy">Tersedia (In Stock)</option>
-                            <option value="sold" class="bg-deepnavy">Terjual (Sold Out)</option>
-                        </select>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="space-y-2">
+                            <label class="text-sm text-slate-400">Status Produk</label>
+                            <select id="form-status" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-rdncyan transition appearance-none">
+                                <option value="available" class="bg-deepnavy">Tersedia (In Stock)</option>
+                                <option value="sold" class="bg-deepnavy">Terjual (Sold Out)</option>
+                            </select>
+                        </div>
+                        <div class="space-y-2" id="form-ownerphone-wrapper">
+                            <label class="text-sm text-slate-400">Nomor WhatsApp Pemilik (Kontak Produk)</label>
+                            <input type="text" id="form-ownerPhone" placeholder="Contoh: 6281234567890" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-rdncyan transition">
+                            <p id="form-ownerphone-hint" class="text-xs text-slate-500">Nomor ini menjadi kontak WhatsApp pembeli untuk produk ini.</p>
+                        </div>
                     </div>
 
                     <!-- Image Management Section -->
@@ -566,12 +611,101 @@
     </div>
 
 
+    <!-- ================= SELLER AUTH MODAL (Daftar / Masuk Akun) ================= -->
+    <div id="auth-modal" class="hide fixed inset-0 bg-black/80 z-[215] flex items-center justify-center p-4 backdrop-blur-sm">
+        <div class="bg-deepnavy border border-white/10 rounded-2xl w-full max-w-sm max-h-[92vh] flex flex-col shadow-2xl relative overflow-hidden">
+            <div class="p-6 pb-0 shrink-0">
+                <div class="flex justify-between items-start">
+                    <div class="flex items-center gap-3">
+                        <div class="bg-cyber-gradient p-2.5 rounded-xl shadow-lg shadow-rdncyan/20">
+                            <i data-lucide="store" class="w-5 h-5 text-deepnavy"></i>
+                        </div>
+                        <div>
+                            <h3 class="font-jakarta font-bold text-lg text-white leading-tight">Akun Penjual</h3>
+                            <p class="text-xs text-gray-400">Jual device Anda di RDNSTORE</p>
+                        </div>
+                    </div>
+                    <button onclick="closeSellerAuth()" class="text-slate-400 hover:text-white"><i data-lucide="x" class="w-5 h-5"></i></button>
+                </div>
+
+                <!-- Tabs -->
+                <div class="flex gap-1 mt-5 p-1 bg-white/5 rounded-xl border border-white/10">
+                    <button type="button" id="auth-tab-login" onclick="switchAuthTab('login')" class="flex-1 text-sm font-semibold py-2 rounded-lg transition-all">Masuk</button>
+                    <button type="button" id="auth-tab-register" onclick="switchAuthTab('register')" class="flex-1 text-sm font-semibold py-2 rounded-lg transition-all">Daftar</button>
+                </div>
+            </div>
+
+            <div class="p-6 overflow-y-auto flex-grow">
+                <!-- LOGIN FORM -->
+                <div id="auth-form-login" class="space-y-4">
+                    <div class="space-y-1.5">
+                        <label class="text-xs text-slate-400 block">Nomor WhatsApp</label>
+                        <div class="relative">
+                            <i data-lucide="phone" class="w-4 h-4 text-slate-500 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none"></i>
+                            <input type="tel" id="login-phone" placeholder="08xxxxxxxxxx" autocomplete="off" class="w-full bg-white/5 border border-white/10 rounded-xl pl-10 pr-4 py-3 text-white text-sm focus:outline-none focus:border-rdncyan focus:ring-1 focus:ring-rdncyan/40 transition placeholder:text-slate-600">
+                        </div>
+                    </div>
+                    <div class="space-y-1.5">
+                        <label class="text-xs text-slate-400 block">Password</label>
+                        <div class="relative">
+                            <i data-lucide="lock" class="w-4 h-4 text-slate-500 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none"></i>
+                            <input type="password" id="login-password" placeholder="••••••••" autocomplete="off" class="w-full bg-white/5 border border-white/10 rounded-xl pl-10 pr-10 py-3 text-white text-sm focus:outline-none focus:border-rdncyan focus:ring-1 focus:ring-rdncyan/40 transition placeholder:text-slate-600">
+                            <button type="button" onclick="toggleAuthEye('login-password', this)" class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-white transition"><i data-lucide="eye" class="w-4 h-4"></i></button>
+                        </div>
+                    </div>
+                    <button onclick="submitLogin()" id="btn-login" class="w-full mt-2 py-3 rounded-xl bg-cyber-gradient text-deepnavy font-bold hover:opacity-90 transition flex items-center justify-center gap-2">
+                        <i data-lucide="log-in" class="w-4 h-4"></i> Masuk Akun
+                    </button>
+                    <p class="text-xs text-center text-slate-500">Belum punya akun? <button type="button" onclick="switchAuthTab('register')" class="text-rdncyan font-semibold hover:underline">Daftar sekarang</button></p>
+                </div>
+
+                <!-- REGISTER FORM -->
+                <div id="auth-form-register" class="hide space-y-4">
+                    <div class="space-y-1.5">
+                        <label class="text-xs text-slate-400 block">Nama Penjual / Toko</label>
+                        <div class="relative">
+                            <i data-lucide="user" class="w-4 h-4 text-slate-500 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none"></i>
+                            <input type="text" id="register-name" placeholder="Nama Anda" autocomplete="off" class="w-full bg-white/5 border border-white/10 rounded-xl pl-10 pr-4 py-3 text-white text-sm focus:outline-none focus:border-rdncyan focus:ring-1 focus:ring-rdncyan/40 transition placeholder:text-slate-600">
+                        </div>
+                    </div>
+                    <div class="space-y-1.5">
+                        <label class="text-xs text-slate-400 block">Nomor WhatsApp</label>
+                        <div class="relative">
+                            <i data-lucide="phone" class="w-4 h-4 text-slate-500 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none"></i>
+                            <input type="tel" id="register-phone" placeholder="08xxxxxxxxxx" autocomplete="off" class="w-full bg-white/5 border border-white/10 rounded-xl pl-10 pr-4 py-3 text-white text-sm focus:outline-none focus:border-rdncyan focus:ring-1 focus:ring-rdncyan/40 transition placeholder:text-slate-600">
+                        </div>
+                        <p class="text-[11px] text-slate-500">Nomor ini akan tampil sebagai kontak produk Anda.</p>
+                    </div>
+                    <div class="space-y-1.5">
+                        <label class="text-xs text-slate-400 block">Password</label>
+                        <div class="relative">
+                            <i data-lucide="lock" class="w-4 h-4 text-slate-500 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none"></i>
+                            <input type="password" id="register-password" placeholder="Minimal 6 karakter" autocomplete="off" class="w-full bg-white/5 border border-white/10 rounded-xl pl-10 pr-10 py-3 text-white text-sm focus:outline-none focus:border-rdncyan focus:ring-1 focus:ring-rdncyan/40 transition placeholder:text-slate-600">
+                            <button type="button" onclick="toggleAuthEye('register-password', this)" class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-white transition"><i data-lucide="eye" class="w-4 h-4"></i></button>
+                        </div>
+                    </div>
+                    <div class="space-y-1.5">
+                        <label class="text-xs text-slate-400 block">Ulangi Password</label>
+                        <div class="relative">
+                            <i data-lucide="lock" class="w-4 h-4 text-slate-500 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none"></i>
+                            <input type="password" id="register-password2" placeholder="Ulangi password" autocomplete="off" class="w-full bg-white/5 border border-white/10 rounded-xl pl-10 pr-4 py-3 text-white text-sm focus:outline-none focus:border-rdncyan focus:ring-1 focus:ring-rdncyan/40 transition placeholder:text-slate-600">
+                        </div>
+                    </div>
+                    <button onclick="submitRegister()" id="btn-register" class="w-full mt-2 py-3 rounded-xl bg-cyber-gradient text-deepnavy font-bold hover:opacity-90 transition flex items-center justify-center gap-2">
+                        <i data-lucide="user-plus" class="w-4 h-4"></i> Daftar & Mulai Jual
+                    </button>
+                    <p class="text-xs text-center text-slate-500">Sudah punya akun? <button type="button" onclick="switchAuthTab('login')" class="text-rdncyan font-semibold hover:underline">Masuk di sini</button></p>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- ================= JAVASCRIPT LOGIC ================= -->
     <script>
         // --- 1. CONFIGURATION ---
         // Ganti googleSheetUrl & kredensial cloudinary sesuai akun Anda sendiri.
         const CONFIG = {
-            googleSheetUrl: 'https://script.google.com/macros/s/AKfycbyt4Rm0YgitAW4FE21RJTultjS49_ECYXgExh0lmLhBaHr67XZh_qZspgm0d1A1oJiL7w/exec',
+            googleSheetUrl: 'https://script.google.com/macros/s/AKfycbzf_GAM1oaLv1m1sIwmZ7GgbBGzPtSF6M2TqnR_mCnrFCo-BHeKK2koLrbwmezBa2p3uw/exec',
             cloudinary: {
                 cloudName: 'sec03zqs',
                 apiKey: '787918577271353',
@@ -591,14 +725,26 @@
         // Palet warna yang dirotasi otomatis untuk kategori baru yang ditambahkan admin
         const CATEGORY_COLOR_PALETTE = ['text-rdncyan', 'text-green-400', 'text-rdnindigo', 'text-purple-400', 'text-amber-400', 'text-pink-400', 'text-teal-400', 'text-orange-400'];
 
+        // Wilayah transaksi/pengiriman default (dipakai sebagai fallback jika sheet "Regions" kosong/gagal dimuat)
+        const DEFAULT_REGIONS = [
+            { id: 'cileungsi-cibubur', label: 'Cileungsi / Cibubur' },
+            { id: 'jabodetabek', label: 'Jabodetabek' }
+        ];
+
         // --- 2. STATE MANAGEMENT ---
         let state = {
             products: [],
             categories: [],       // Diisi dari sheet "Categories" saat fetchCategories()
+            regions: [],          // Diisi dari sheet "Regions" saat fetchRegions() -> daftar wilayah transaksi/pengiriman
+            formRegionAdding: false, // true saat kotak input "Masukkan Wilayah" sedang terbuka di dropdown form
             currentFilter: 'semua',
+            searchQuery: '',
             currentDetailId: null,
             formImages: [],       // Gambar produk yang sedang diedit di form (string URL atau object pending)
-            pendingUploadFiles: [] // File yang siap diupload ke Cloudinary
+            pendingUploadFiles: [], // File yang siap diupload ke Cloudinary
+            productPhoneByName: {}, // Peta nama produk -> nomor WhatsApp pemilik (untuk form nego)
+            session: { phone: null, name: '' }, // Sesi akun penjual yang sedang login (tersimpan di localStorage)
+            role: null // 'admin' | 'seller' | null -> menentukan hak akses saat panel dashboard dibuka
         };
 
         // Helper untuk mengambil label & warna kategori dari state.categories (dengan fallback aman)
@@ -609,6 +755,13 @@
         function getCategoryColor(catId) {
             const found = state.categories.find(c => c.id === catId);
             return found ? (found.color || 'text-rdncyan') : 'text-rdncyan';
+        }
+
+        // Helper untuk mengambil label wilayah dari state.regions berdasarkan id
+        function getRegionLabel(regionId) {
+            if (!regionId) return '';
+            const found = state.regions.find(r => r.id === regionId);
+            return found ? found.label : '';
         }
 
         // Initialize Icons
@@ -628,6 +781,46 @@
             const hashBuffer = await crypto.subtle.digest('SHA-1', msgBuffer);
             const hashArray = Array.from(new Uint8Array(hashBuffer));
             return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+        }
+
+        // --- 3b. AKUN PENJUAL: HELPER NOMOR & PASSWORD ---
+        // Menormalkan nomor WhatsApp ke format 62xxxxxxxxxx (dipakai sebagai ID unik akun)
+        function normalizePhone(raw) {
+            let n = String(raw || '').replace(/[^0-9]/g, '');
+            if (n.startsWith('0')) n = '62' + n.slice(1);
+            if (n.startsWith('8')) n = '62' + n;
+            if (!n.startsWith('62')) n = '62' + n;
+            return n;
+        }
+        function formatPhoneDisplay(phone) {
+            return '+' + String(phone || '');
+        }
+        // Password di-hash SHA-256 di client sebelum dikirim, biar tidak tersimpan plain-text di Sheets
+        async function hashPassword(password) {
+            const msgBuffer = new TextEncoder().encode(String(password));
+            const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
+            const hashArray = Array.from(new Uint8Array(hashBuffer));
+            return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+        }
+
+        // --- 3c. SESI AKUN (localStorage, dipakai agar penjual tidak perlu login ulang) ---
+        function loadSession() {
+            try {
+                const raw = localStorage.getItem('rdnstore_session');
+                if (raw) {
+                    const s = JSON.parse(raw);
+                    if (s && s.phone) {
+                        state.session.phone = s.phone;
+                        state.session.name = s.name || '';
+                    }
+                }
+            } catch (e) { console.warn('Gagal memuat sesi:', e); }
+        }
+        function persistSession() {
+            localStorage.setItem('rdnstore_session', JSON.stringify({ phone: state.session.phone, name: state.session.name }));
+        }
+        function clearSessionStorage() {
+            localStorage.removeItem('rdnstore_session');
         }
 
         async function fetchWithTimeout(url, options = {}, timeout = 15000) {
@@ -680,6 +873,20 @@
             renderCategoryFilterDropdown();
             renderCategoryFormOptions();
             renderCategoryManagerList();
+        }
+
+        // Ambil daftar wilayah transaksi/pengiriman dari sheet "Regions" (via Apps Script, param ?type=regions)
+        async function fetchRegions() {
+            try {
+                const response = await fetchWithTimeout(`${CONFIG.googleSheetUrl}?type=regions`, { cache: 'no-store' }, 15000);
+                if (!response.ok) throw new Error(`Fetch error: ${response.status} ${response.statusText}`);
+                const data = await response.json();
+                state.regions = (Array.isArray(data) && data.length > 0) ? data : [...DEFAULT_REGIONS];
+            } catch (error) {
+                console.error("Error fetching regions, memakai default:", error);
+                state.regions = [...DEFAULT_REGIONS];
+            }
+            renderFormRegionOptions();
         }
 
         async function pushToDatabase(action, dataObj) {
@@ -746,27 +953,67 @@
 
         function filterCategory(category) {
             state.currentFilter = category;
-            const select = document.getElementById('category-filter-select');
-            if (select && select.value !== category) select.value = category;
+            document.getElementById('category-dropdown-panel')?.classList.add('hide');
+            document.getElementById('category-dropdown-chevron')?.classList.remove('rotate-180');
+            renderCategoryFilterDropdown();
             renderStorefront();
         }
 
-        // Isi dropdown filter kategori di beranda berdasarkan state.categories
+        function toggleCategoryDropdown() {
+            document.getElementById('category-dropdown-panel')?.classList.toggle('hide');
+            document.getElementById('category-dropdown-chevron')?.classList.toggle('rotate-180');
+        }
+
+        // Isi dropdown filter kategori di beranda (versi kustom, selaras dengan desain glassmorphism)
         function renderCategoryFilterDropdown() {
-            const select = document.getElementById('category-filter-select');
-            if (!select) return;
-            const currentValue = state.currentFilter;
-            select.innerHTML = '<option value="semua" class="bg-deepnavy">Semua Produk</option>';
-            state.categories.forEach(cat => {
-                const opt = document.createElement('option');
-                opt.value = cat.id;
-                opt.textContent = cat.label;
-                opt.className = 'bg-deepnavy';
-                select.appendChild(opt);
-            });
-            const validValue = currentValue === 'semua' || state.categories.some(c => c.id === currentValue);
-            select.value = validValue ? currentValue : 'semua';
+            const panel = document.getElementById('category-dropdown-panel');
+            if (!panel) return;
+
+            const validValue = state.currentFilter === 'semua' || state.categories.some(c => c.id === state.currentFilter);
             if (!validValue) state.currentFilter = 'semua';
+
+            const options = [{ id: 'semua', label: 'Semua Produk', color: 'text-rdncyan' }, ...state.categories];
+            panel.innerHTML = options.map(cat => {
+                const dotColor = (cat.color || 'text-rdncyan').replace('text-', 'bg-');
+                const isActive = state.currentFilter === cat.id;
+                return `
+                    <button type="button" onclick="filterCategory('${cat.id}')" class="w-full flex items-center gap-2.5 px-4 py-2.5 rounded-xl text-sm text-left transition-colors ${isActive ? 'bg-white/10 text-white font-semibold' : 'text-gray-300 hover:bg-white/5 hover:text-white'}">
+                        <span class="w-2 h-2 rounded-full ${dotColor} shrink-0"></span>
+                        <span class="flex-1 truncate">${cat.label}</span>
+                        ${isActive ? '<i data-lucide="check" class="w-4 h-4 text-rdncyan shrink-0"></i>' : ''}
+                    </button>
+                `;
+            }).join('');
+
+            updateCategoryDropdownLabel();
+            lucide.createIcons();
+        }
+
+        function updateCategoryDropdownLabel() {
+            const labelEl = document.getElementById('category-dropdown-label');
+            const dotEl = document.getElementById('category-dropdown-dot');
+            if (!labelEl || !dotEl) return;
+            if (state.currentFilter === 'semua') {
+                labelEl.textContent = 'Semua Produk';
+                dotEl.className = 'w-2 h-2 rounded-full bg-rdncyan shrink-0';
+            } else {
+                const cat = state.categories.find(c => c.id === state.currentFilter);
+                labelEl.textContent = cat ? cat.label : 'Semua Produk';
+                dotEl.className = `w-2 h-2 rounded-full shrink-0 ${(cat && cat.color ? cat.color : 'text-rdncyan').replace('text-', 'bg-')}`;
+            }
+        }
+
+        // --- PENCARIAN PRODUK DI BERANDA ---
+        function handleSearchInput(value) {
+            state.searchQuery = value.trim().toLowerCase();
+            document.getElementById('search-clear-btn').classList.toggle('hide', !state.searchQuery);
+            renderStorefront();
+        }
+        function clearSearchInput() {
+            document.getElementById('search-input').value = '';
+            state.searchQuery = '';
+            document.getElementById('search-clear-btn').classList.add('hide');
+            renderStorefront();
         }
 
         // Isi dropdown kategori pada form tambah/edit produk di admin
@@ -787,16 +1034,172 @@
             }
         }
 
+        // --- WILAYAH TRANSAKSI/PENGIRIMAN: dropdown kustom di form produk (dipakai penjual & admin) ---
+        function toggleFormRegionDropdown() {
+            const panel = document.getElementById('form-region-panel');
+            const isHidden = panel?.classList.contains('hide');
+            panel?.classList.toggle('hide');
+            document.getElementById('form-region-chevron')?.classList.toggle('rotate-180');
+            if (isHidden === false) {
+                // Panel baru saja ditutup -> reset mode tambah wilayah
+                state.formRegionAdding = false;
+            }
+        }
+
+        function closeFormRegionDropdown() {
+            document.getElementById('form-region-panel')?.classList.add('hide');
+            document.getElementById('form-region-chevron')?.classList.remove('rotate-180');
+            state.formRegionAdding = false;
+        }
+
+        // Generate id/slug unik untuk wilayah baru, mirip generateCategorySlug
+        function generateRegionSlug(name) {
+            let base = String(name).toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/(^-+|-+$)/g, '');
+            if (!base) base = 'wilayah';
+            let slug = base;
+            let i = 2;
+            while (state.regions.some(r => r.id === slug)) {
+                slug = `${base}-${i}`;
+                i++;
+            }
+            return slug;
+        }
+
+        function updateFormRegionLabel() {
+            const labelEl = document.getElementById('form-region-label');
+            if (!labelEl) return;
+            const selectedId = document.getElementById('form-region')?.value || '';
+            const label = getRegionLabel(selectedId);
+            if (label) {
+                labelEl.textContent = label;
+                labelEl.classList.remove('text-slate-500');
+            } else {
+                labelEl.textContent = 'Pilih Wilayah';
+                labelEl.classList.add('text-slate-500');
+            }
+        }
+
+        // Render daftar opsi wilayah + opsi "Masukkan Wilayah" di bagian paling bawah dropdown
+        function renderFormRegionOptions() {
+            const panel = document.getElementById('form-region-panel');
+            if (!panel) return;
+
+            const selectedId = document.getElementById('form-region')?.value || '';
+
+            let listHtml = state.regions.map(region => {
+                const isActive = selectedId === region.id;
+                return `
+                    <button type="button" onclick="selectFormRegion('${region.id}')" class="w-full flex items-center gap-2.5 px-4 py-2.5 rounded-xl text-sm text-left transition-colors ${isActive ? 'bg-white/10 text-white font-semibold' : 'text-gray-300 hover:bg-white/5 hover:text-white'}">
+                        <span class="flex-1 truncate">${region.label}</span>
+                        ${isActive ? '<i data-lucide="check" class="w-4 h-4 text-rdncyan shrink-0"></i>' : ''}
+                    </button>
+                `;
+            }).join('');
+
+            if (state.regions.length === 0) {
+                listHtml = `<p class="px-4 py-3 text-xs text-slate-500">Belum ada wilayah terdaftar.</p>`;
+            }
+
+            const addSectionHtml = state.formRegionAdding
+                ? `
+                    <div class="p-1.5 flex gap-1.5">
+                        <input type="text" id="new-region-input" placeholder="Nama wilayah baru..." autocomplete="off"
+                            class="flex-1 min-w-0 bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-rdncyan transition"
+                            onkeydown="if(event.key==='Enter'){event.preventDefault(); confirmAddFormRegion();} if(event.key==='Escape'){event.preventDefault(); cancelAddFormRegion();}">
+                        <button type="button" onclick="confirmAddFormRegion()" class="bg-rdncyan text-deepnavy px-3 rounded-lg font-bold hover:bg-rdnblue transition shrink-0 flex items-center justify-center"><i data-lucide="check" class="w-4 h-4"></i></button>
+                        <button type="button" onclick="cancelAddFormRegion()" class="bg-white/5 border border-white/10 text-slate-300 px-3 rounded-lg hover:bg-white/10 transition shrink-0 flex items-center justify-center"><i data-lucide="x" class="w-4 h-4"></i></button>
+                    </div>
+                `
+                : `
+                    <button type="button" onclick="showAddFormRegionInput()" class="w-full flex items-center gap-2.5 px-4 py-2.5 rounded-xl text-sm text-left text-rdncyan hover:bg-white/5 transition-colors font-semibold">
+                        <i data-lucide="plus-circle" class="w-4 h-4 shrink-0"></i>
+                        <span>Masukkan Wilayah</span>
+                    </button>
+                `;
+
+            panel.innerHTML = `
+                <div class="space-y-0.5">${listHtml}</div>
+                <div class="border-t border-white/10 mt-1.5 pt-1.5">${addSectionHtml}</div>
+            `;
+
+            updateFormRegionLabel();
+            lucide.createIcons();
+
+            if (state.formRegionAdding) {
+                const input = document.getElementById('new-region-input');
+                if (input) input.focus();
+            }
+        }
+
+        function selectFormRegion(regionId) {
+            document.getElementById('form-region').value = regionId;
+            state.formRegionAdding = false;
+            closeFormRegionDropdown();
+            renderFormRegionOptions();
+        }
+
+        function showAddFormRegionInput() {
+            state.formRegionAdding = true;
+            renderFormRegionOptions();
+        }
+
+        function cancelAddFormRegion() {
+            state.formRegionAdding = false;
+            renderFormRegionOptions();
+        }
+
+        // Tambah wilayah baru: hanya disimpan ke sheet jika namanya belum ada di daftar (tidak peka huruf besar/kecil)
+        async function confirmAddFormRegion() {
+            const input = document.getElementById('new-region-input');
+            const name = (input?.value || '').trim();
+            if (!name) return;
+
+            const existing = state.regions.find(r => r.label.trim().toLowerCase() === name.toLowerCase());
+            if (existing) {
+                // Wilayah sudah ada -> langsung pilih, tidak perlu ditambahkan lagi ke sheet
+                selectFormRegion(existing.id);
+                return;
+            }
+
+            const confirmBtn = input.parentElement.querySelector('button');
+            if (confirmBtn) confirmBtn.innerHTML = `<div class="spinner w-3.5 h-3.5 border-2"></div>`;
+
+            const id = generateRegionSlug(name);
+            const newRegion = { id, label: name };
+
+            try {
+                await pushToDatabase('saveRegion', { region: newRegion });
+                state.regions.push(newRegion);
+                selectFormRegion(id);
+            } catch (e) {
+                console.error(e);
+                Swal.fire({ title: 'Gagal', text: 'Wilayah baru gagal disimpan ke database. Coba lagi.', icon: 'error', background: '#070c19', color: '#fff' });
+                renderFormRegionOptions();
+            }
+        }
+
         function renderStorefront() {
             const grid = document.getElementById('product-grid');
             const emptyState = document.getElementById('empty-state');
             grid.innerHTML = '';
 
-            const filtered = state.products.filter(p => state.currentFilter === 'semua' || p.category === state.currentFilter);
+            const filtered = state.products.filter(p => {
+                const matchesCategory = state.currentFilter === 'semua' || p.category === state.currentFilter;
+                if (!matchesCategory) return false;
+                if (!state.searchQuery) return true;
+                const haystack = `${p.name || ''} ${p.description || ''} ${p.specs || ''} ${getCategoryLabel(p.category) || ''}`.toLowerCase();
+                return haystack.includes(state.searchQuery);
+            });
 
             if (filtered.length === 0) {
                 grid.classList.add('hide');
                 emptyState.classList.remove('hide');
+                const emptyText = emptyState.querySelector('p');
+                if (emptyText) {
+                    emptyText.textContent = state.searchQuery
+                        ? `Tidak ada produk yang cocok dengan "${document.getElementById('search-input')?.value || ''}".`
+                        : 'Belum ada produk di kategori ini.';
+                }
                 return;
             }
 
@@ -850,11 +1253,14 @@
             const select = document.getElementById('selectedProduct');
             const currentValue = select.value;
             select.innerHTML = '<option value="" disabled selected>Pilih unit yang diminati</option>';
+            state.productPhoneByName = {};
             state.products.forEach(product => {
                 const opt = document.createElement('option');
                 opt.value = product.name;
                 opt.textContent = `${product.name} (${formatRupiah(product.price)})${product.status === 'sold' ? ' - Terjual' : ''}`;
                 select.appendChild(opt);
+                // Setiap produk terhubung ke nomor WhatsApp pemiliknya masing-masing
+                state.productPhoneByName[product.name] = product.ownerPhone || product.contactNumber || CONFIG.whatsappNumber;
             });
             if (currentValue) select.value = currentValue;
         }
@@ -869,6 +1275,7 @@
             const isSold = product.status === 'sold';
             const hasDiscount = product.originalPrice && parseInt(product.originalPrice) > parseInt(product.price);
             const catLabel = getCategoryLabel(product.category);
+            const regionLabel = getRegionLabel(product.region);
             const specLines = String(product.specs || '').split('\n').map(s => s.trim()).filter(Boolean);
             const conditionLines = String((product.conditionUnit ?? product.condition) || '').split('\n').map(s => s.trim()).filter(Boolean);
             const completenessLines = String((product.completenessUnit ?? product.completeness) || '').split('\n').map(s => s.trim()).filter(Boolean);
@@ -900,6 +1307,7 @@
                             ${catLabel} &middot; Premium Secondhand
                         </div>
                         <h2 class="font-jakarta text-2xl sm:text-3xl md:text-4xl font-bold text-white mb-2">${product.name}</h2>
+                        ${regionLabel ? `<div class="flex items-center gap-1.5 text-xs sm:text-sm text-rdncyan font-medium mb-3"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a2 2 0 01-2.828 0l-4.243-4.243a8 8 0 1111.314 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg><span>${regionLabel}</span></div>` : ''}
                         <p class="text-sm sm:text-base text-gray-400 mb-6 font-medium">${product.description || 'Tidak ada deskripsi tambahan.'}</p>
 
                         <div class="p-4 sm:p-6 rounded-2xl bg-white/5 border border-white/10 mb-8 flex flex-col sm:flex-row justify-between sm:items-center gap-4">
@@ -1012,9 +1420,10 @@
             const method = document.getElementById('transactionMethod').value;
             const offer = document.getElementById('offerPrice').value || 'Sesuai Harga Tertera';
             const notes = document.getElementById('extraNotes').value || 'Tidak ada catatan khusus.';
-            const phone = CONFIG.whatsappNumber;
+            // Nomor tujuan mengikuti pemilik/penjual produk yang dipilih, bukan satu nomor global
+            const phone = state.productPhoneByName[product] || CONFIG.whatsappNumber;
 
-            const message = `Halo Kang Raden, perkenalkan saya *${name}*.\n\nSaya tertarik dengan produk RDNSTORE yang ada di website:\n🛒 *Unit:* ${product}\n🤝 *Metode Transaksi:* ${method}\n💰 *Penawaran Harga:* ${offer}\n\n📝 *Catatan Tambahan:*\n_${notes}_\n\nApakah unit tersebut masih tersedia? Terima kasih.`;
+            const message = `Halo, perkenalkan saya *${name}*.\n\nSaya tertarik dengan produk RDNSTORE yang ada di website:\n🛒 *Unit:* ${product}\n🤝 *Metode Transaksi:* ${method}\n💰 *Penawaran Harga:* ${offer}\n\n📝 *Catatan Tambahan:*\n_${notes}_\n\nApakah unit tersebut masih tersedia? Terima kasih.`;
 
             window.open(`https://wa.me/${phone}?text=${encodeURIComponent(message)}`, '_blank');
         });
@@ -1062,6 +1471,232 @@
             stagger: 0.2,
             ease: "power3.out",
             delay: 0.1
+        });
+
+        // ================= AKUN PENJUAL (REGISTRASI / LOGIN) ================= //
+
+        // --- 11b. NAV / SIDEBAR ACCOUNT PANEL ---
+        function renderAccountArea() {
+            const desktop = document.getElementById('nav-account-area');
+            const mobile = document.getElementById('mobile-account-area');
+            if (!desktop || !mobile) return;
+
+            if (state.session.phone) {
+                const label = state.session.name || formatPhoneDisplay(state.session.phone);
+                desktop.innerHTML = `
+                    <button onclick="toggleAccountMenu()" id="account-menu-btn" class="flex items-center gap-2 glass-panel pl-3 pr-3.5 py-2 rounded-full text-sm text-white hover:border-rdncyan/40 transition-all max-w-[180px]">
+                        <span class="w-6 h-6 rounded-full bg-cyber-gradient flex items-center justify-center shrink-0"><i data-lucide="user" class="w-3.5 h-3.5 text-deepnavy"></i></span>
+                        <span class="truncate">${label}</span>
+                        <i data-lucide="chevron-down" class="w-3.5 h-3.5 text-gray-400 shrink-0"></i>
+                    </button>
+                    <div id="account-menu" class="hide absolute right-0 mt-2 w-56 glass-panel rounded-xl overflow-hidden shadow-2xl z-50">
+                        <div class="px-4 py-3 border-b border-white/10">
+                            <p class="text-xs text-gray-500">Masuk sebagai</p>
+                            <p class="text-sm text-white font-medium truncate">${formatPhoneDisplay(state.session.phone)}</p>
+                        </div>
+                        <button onclick="openSellerDashboard()" class="w-full text-left px-4 py-3 text-sm text-gray-200 hover:bg-white/10 flex items-center gap-2 transition"><i data-lucide="package" class="w-4 h-4 text-rdncyan"></i> Produk Saya</button>
+                        <button onclick="logoutSeller()" class="w-full text-left px-4 py-3 text-sm text-red-400 hover:bg-white/10 flex items-center gap-2 border-t border-white/10 transition"><i data-lucide="log-out" class="w-4 h-4"></i> Keluar Akun</button>
+                    </div>
+                `;
+                mobile.innerHTML = `
+                    <div class="glass-panel rounded-xl p-3.5 mb-1.5">
+                        <p class="text-xs text-gray-500">Masuk sebagai</p>
+                        <p class="text-sm text-white font-semibold truncate">${label}</p>
+                    </div>
+                    <button onclick="openSellerDashboard(); toggleMenu();" class="w-full flex items-center gap-3.5 text-left text-base font-medium text-gray-200 hover:text-white glass-panel bg-white/[0.02] hover:bg-white/[0.06] hover:border-rdncyan/30 border border-transparent transition-all px-4 py-3.5 rounded-xl">
+                        <span class="bg-white/5 p-2 rounded-lg"><i data-lucide="package" class="w-4 h-4 text-rdncyan"></i></span>
+                        Produk Saya
+                    </button>
+                    <button onclick="logoutSeller()" class="w-full flex items-center gap-3.5 text-left text-base font-medium text-red-400 hover:text-red-300 glass-panel bg-white/[0.02] hover:bg-white/[0.06] hover:border-red-400/30 border border-transparent transition-all px-4 py-3.5 rounded-xl">
+                        <span class="bg-white/5 p-2 rounded-lg"><i data-lucide="log-out" class="w-4 h-4"></i></span>
+                        Keluar Akun
+                    </button>
+                `;
+            } else {
+                desktop.innerHTML = `
+                    <button onclick="openSellerAuth('login')" class="flex items-center gap-2 bg-cyber-gradient text-deepnavy text-sm font-bold px-4 py-2 rounded-full hover:opacity-90 hover:scale-[1.03] active:scale-95 transition-all shadow-[0_0_15px_rgba(79,172,254,0.25)]">
+                        <i data-lucide="store" class="w-4 h-4"></i> Jual Device
+                    </button>
+                `;
+                mobile.innerHTML = `
+                    <div class="glass-panel rounded-xl p-4 mb-1.5 border-rdncyan/20">
+                        <p class="text-sm font-semibold text-white mb-1">Ingin menjual device?</p>
+                        <p class="text-xs text-gray-400 mb-3 leading-relaxed">Daftar akun gratis dengan nomor WhatsApp Anda untuk mulai memasang produk.</p>
+                        <button onclick="openSellerAuth('register'); toggleMenu();" class="w-full flex items-center justify-center gap-2 bg-cyber-gradient text-deepnavy text-sm font-bold px-4 py-2.5 rounded-lg hover:opacity-90 transition">
+                            <i data-lucide="store" class="w-4 h-4"></i> Jual Device Sekarang
+                        </button>
+                        <button onclick="openSellerAuth('login'); toggleMenu();" class="w-full text-center text-xs text-gray-400 hover:text-white mt-2.5 transition">Sudah punya akun? Masuk</button>
+                    </div>
+                `;
+            }
+            lucide.createIcons();
+        }
+
+        function toggleAccountMenu() {
+            document.getElementById('account-menu')?.classList.toggle('hide');
+        }
+
+        // --- 11c. MODAL AUTH (LOGIN / REGISTER) ---
+        function openSellerAuth(tab = 'login') {
+            document.getElementById('auth-modal').classList.remove('hide');
+            switchAuthTab(tab);
+            lucide.createIcons();
+        }
+        function closeSellerAuth() {
+            document.getElementById('auth-modal').classList.add('hide');
+        }
+        function switchAuthTab(tab) {
+            const loginTab = document.getElementById('auth-tab-login');
+            const registerTab = document.getElementById('auth-tab-register');
+            const loginForm = document.getElementById('auth-form-login');
+            const registerForm = document.getElementById('auth-form-register');
+            if (tab === 'login') {
+                loginForm.classList.remove('hide');
+                registerForm.classList.add('hide');
+                loginTab.className = 'flex-1 text-sm font-semibold py-2 rounded-lg transition-all bg-white text-deepnavy';
+                registerTab.className = 'flex-1 text-sm font-semibold py-2 rounded-lg transition-all text-gray-400 hover:text-white';
+            } else {
+                registerForm.classList.remove('hide');
+                loginForm.classList.add('hide');
+                registerTab.className = 'flex-1 text-sm font-semibold py-2 rounded-lg transition-all bg-white text-deepnavy';
+                loginTab.className = 'flex-1 text-sm font-semibold py-2 rounded-lg transition-all text-gray-400 hover:text-white';
+            }
+        }
+        function toggleAuthEye(inputId, btn) {
+            const input = document.getElementById(inputId);
+            input.type = input.type === 'password' ? 'text' : 'password';
+            btn.querySelector('i').setAttribute('data-lucide', input.type === 'password' ? 'eye' : 'eye-off');
+            lucide.createIcons();
+        }
+
+        // --- 11d. SUBMIT LOGIN ---
+        async function submitLogin() {
+            const phoneRaw = document.getElementById('login-phone').value.trim();
+            const password = document.getElementById('login-password').value;
+            if (!phoneRaw || !password) {
+                return Swal.fire({ title: 'Oops', text: 'Nomor WhatsApp dan password wajib diisi!', icon: 'warning', background: '#070c19', color: '#fff' });
+            }
+            const phone = normalizePhone(phoneRaw);
+            const btn = document.getElementById('btn-login');
+            const originalText = btn.innerHTML;
+            btn.innerHTML = `<div class="spinner w-4 h-4 border-2"></div> Memproses...`;
+            btn.disabled = true;
+            try {
+                const passwordHash = await hashPassword(password);
+                const res = await pushToDatabase('sellerLogin', { phone, passwordHash });
+                if (res && res.success) {
+                    state.session.phone = phone;
+                    state.session.name = res.name || '';
+                    persistSession();
+                    renderAccountArea();
+                    closeSellerAuth();
+                    document.getElementById('login-phone').value = '';
+                    document.getElementById('login-password').value = '';
+                    Swal.fire({ title: 'Berhasil Masuk!', text: 'Selamat datang kembali di RDNSTORE.', icon: 'success', background: '#070c19', color: '#fff', timer: 1800, showConfirmButton: false });
+                } else {
+                    Swal.fire({ title: 'Gagal Masuk', text: (res && res.message) || 'Nomor WhatsApp atau password salah.', icon: 'error', background: '#070c19', color: '#fff' });
+                }
+            } catch (e) {
+                console.error(e);
+                Swal.fire({ title: 'Error', text: 'Tidak dapat terhubung ke server. Coba lagi nanti.', icon: 'error', background: '#070c19', color: '#fff' });
+            } finally {
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+            }
+        }
+
+        // --- 11e. SUBMIT REGISTER ---
+        async function submitRegister() {
+            const name = document.getElementById('register-name').value.trim();
+            const phoneRaw = document.getElementById('register-phone').value.trim();
+            const password = document.getElementById('register-password').value;
+            const password2 = document.getElementById('register-password2').value;
+
+            if (!name || !phoneRaw || !password || !password2) {
+                return Swal.fire({ title: 'Oops', text: 'Semua kolom wajib diisi!', icon: 'warning', background: '#070c19', color: '#fff' });
+            }
+            if (password.length < 6) {
+                return Swal.fire({ title: 'Oops', text: 'Password minimal 6 karakter.', icon: 'warning', background: '#070c19', color: '#fff' });
+            }
+            if (password !== password2) {
+                return Swal.fire({ title: 'Oops', text: 'Konfirmasi password tidak cocok.', icon: 'warning', background: '#070c19', color: '#fff' });
+            }
+            const phone = normalizePhone(phoneRaw);
+            if (phone.length < 10) {
+                return Swal.fire({ title: 'Oops', text: 'Nomor WhatsApp tidak valid.', icon: 'warning', background: '#070c19', color: '#fff' });
+            }
+
+            const btn = document.getElementById('btn-register');
+            const originalText = btn.innerHTML;
+            btn.innerHTML = `<div class="spinner w-4 h-4 border-2"></div> Memproses...`;
+            btn.disabled = true;
+            try {
+                const passwordHash = await hashPassword(password);
+                const res = await pushToDatabase('sellerRegister', { phone, name, passwordHash });
+                if (res && res.success) {
+                    state.session.phone = phone;
+                    state.session.name = name;
+                    persistSession();
+                    renderAccountArea();
+                    closeSellerAuth();
+                    document.getElementById('register-name').value = '';
+                    document.getElementById('register-phone').value = '';
+                    document.getElementById('register-password').value = '';
+                    document.getElementById('register-password2').value = '';
+                    Swal.fire({ title: 'Registrasi Berhasil!', text: 'Akun Anda siap. Sekarang Anda bisa menambahkan produk untuk dijual.', icon: 'success', background: '#070c19', color: '#fff' });
+                } else {
+                    Swal.fire({ title: 'Registrasi Gagal', text: (res && res.message) || 'Nomor WhatsApp sudah terdaftar.', icon: 'error', background: '#070c19', color: '#fff' });
+                }
+            } catch (e) {
+                console.error(e);
+                Swal.fire({ title: 'Error', text: 'Tidak dapat terhubung ke server. Coba lagi nanti.', icon: 'error', background: '#070c19', color: '#fff' });
+            } finally {
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+            }
+        }
+
+        // --- 11f. LOGOUT ---
+        function logoutSeller() {
+            state.session.phone = null;
+            state.session.name = '';
+            state.role = null;
+            clearSessionStorage();
+            document.getElementById('account-menu')?.classList.add('hide');
+            renderAccountArea();
+            closeAdmin();
+            Swal.fire({ title: 'Berhasil Keluar', icon: 'success', background: '#070c19', color: '#fff', timer: 1200, showConfirmButton: false });
+        }
+
+        // --- 11g. BUKA DASHBOARD PENJUAL (hanya produk milik sendiri) ---
+        function openSellerDashboard() {
+            if (!state.session.phone) return openSellerAuth('login');
+            state.role = 'seller';
+            document.getElementById('account-menu')?.classList.add('hide');
+            document.getElementById('admin-panel-title').innerText = 'Produk Saya';
+            document.getElementById('btn-manage-categories').classList.add('hide');
+            document.getElementById('admin-view').classList.remove('hide');
+            document.getElementById('public-view').classList.add('hide');
+            renderAdminTable();
+            lucide.createIcons();
+        }
+
+        // Tutup panel dropdown kategori & akun saat klik di luar area-nya
+        document.addEventListener('click', (e) => {
+            const catWrapper = document.getElementById('category-dropdown-wrapper');
+            if (catWrapper && !catWrapper.contains(e.target)) {
+                document.getElementById('category-dropdown-panel')?.classList.add('hide');
+                document.getElementById('category-dropdown-chevron')?.classList.remove('rotate-180');
+            }
+            const regionWrapper = document.getElementById('form-region-wrapper');
+            if (regionWrapper && !regionWrapper.contains(e.target)) {
+                closeFormRegionDropdown();
+            }
+            const accMenu = document.getElementById('account-menu');
+            const accBtn = document.getElementById('account-menu-btn');
+            if (accMenu && !accMenu.classList.contains('hide') && !accMenu.contains(e.target) && (!accBtn || !accBtn.contains(e.target))) {
+                accMenu.classList.add('hide');
+            }
         });
 
         // ================= ADMIN PANEL LOGIC ================= //
@@ -1118,6 +1753,9 @@
             }).then((result) => {
                 if (!result.isConfirmed) return;
                 if (result.value === CONFIG.adminPassword) {
+                    state.role = 'admin';
+                    document.getElementById('admin-panel-title').innerText = 'Admin Panel RDNSTORE';
+                    document.getElementById('btn-manage-categories').classList.remove('hide');
                     document.getElementById('admin-view').classList.remove('hide');
                     document.getElementById('public-view').classList.add('hide');
                     renderAdminTable();
@@ -1131,6 +1769,7 @@
         function closeAdmin() {
             document.getElementById('admin-view').classList.add('hide');
             document.getElementById('public-view').classList.remove('hide');
+            state.role = null;
         }
 
         // --- 12c. CATEGORY MANAGEMENT ---
@@ -1248,13 +1887,21 @@
             tbody.innerHTML = '';
             mobileList.innerHTML = '';
 
-            if (state.products.length === 0) {
-                mobileList.innerHTML = `<p class="text-center text-slate-500 text-sm py-10">Belum ada produk.</p>`;
+            // Penjual (bukan admin) hanya boleh melihat & mengelola produk miliknya sendiri
+            const visibleProducts = state.role === 'seller'
+                ? state.products.filter(p => p.ownerPhone === state.session.phone)
+                : state.products;
+
+            if (visibleProducts.length === 0) {
+                const emptyMsg = state.role === 'seller' ? 'Anda belum menambahkan produk. Klik "Tambah Produk" untuk mulai jualan.' : 'Belum ada produk.';
+                tbody.innerHTML = `<tr><td colspan="6" class="p-8 text-center text-slate-500 text-sm">${emptyMsg}</td></tr>`;
+                mobileList.innerHTML = `<p class="text-center text-slate-500 text-sm py-10">${emptyMsg}</p>`;
             }
 
-            state.products.forEach(product => {
+            visibleProducts.forEach(product => {
                 const coverImage = product.images && product.images.length > 0 ? product.images[0] : 'https://placehold.co/100x100?text=NoImg';
                 const catLabel = getCategoryLabel(product.category);
+                const regionLabel = getRegionLabel(product.region) || '-';
                 const isSold = product.status === 'sold';
 
                 // --- Desktop table row ---
@@ -1269,6 +1916,7 @@
                         </div>
                     </td>
                     <td class="p-4 text-slate-300">${catLabel}</td>
+                    <td class="p-4 text-slate-300">${regionLabel}</td>
                     <td class="p-4 text-rdncyan font-medium">${formatRupiah(product.price)}</td>
                     <td class="p-4">
                         <span class="px-2 py-1 rounded text-xs font-bold ${isSold ? 'bg-red-500/20 text-red-400' : 'bg-emerald-500/20 text-emerald-400'}">
@@ -1290,7 +1938,7 @@
                     <img src="${coverImage}" class="w-14 h-14 rounded-lg bg-white/10 object-cover shrink-0">
                     <div class="flex-1 min-w-0">
                         <p class="font-bold text-white truncate">${product.name}</p>
-                        <p class="text-xs text-slate-400 truncate">${catLabel} • ${formatRupiah(product.price)}</p>
+                        <p class="text-xs text-slate-400 truncate">${catLabel} • ${regionLabel} • ${formatRupiah(product.price)}</p>
                     </div>
                     <span class="w-2 h-2 rounded-full shrink-0 ${isSold ? 'bg-red-400' : 'bg-emerald-400'}"></span>
                     <i data-lucide="chevron-right" class="w-4 h-4 text-slate-500 shrink-0"></i>
@@ -1306,12 +1954,13 @@
             if (!product) return;
             const coverImage = product.images && product.images.length > 0 ? product.images[0] : 'https://placehold.co/400x300?text=NoImg';
             const catLabel = getCategoryLabel(product.category);
+            const regionLabel = getRegionLabel(product.region) || '-';
             const isSold = product.status === 'sold';
 
             document.getElementById('admin-detail-image').src = coverImage;
             document.getElementById('admin-detail-name').innerText = product.name;
             document.getElementById('admin-detail-id').innerText = 'ID: ' + product.id;
-            document.getElementById('admin-detail-category').innerText = catLabel;
+            document.getElementById('admin-detail-category').innerText = `${catLabel} • ${regionLabel}`;
             document.getElementById('admin-detail-price').innerText = formatRupiah(product.price);
 
             const statusEl = document.getElementById('admin-detail-status');
@@ -1347,6 +1996,8 @@
                 document.getElementById('form-condition').value = product.conditionUnit ?? product.condition ?? '';
                 document.getElementById('form-completeness').value = product.completenessUnit ?? product.completeness ?? '';
                 document.getElementById('form-status').value = product.status || 'available';
+                document.getElementById('form-ownerPhone').value = product.ownerPhone || CONFIG.whatsappNumber;
+                document.getElementById('form-region').value = product.region || '';
                 state.formImages = [...(product.images || [])];
             } else {
                 document.getElementById('modal-title').innerText = 'Tambah Produk Baru';
@@ -1354,7 +2005,27 @@
                 document.getElementById('form-id').value = '';
                 document.getElementById('form-condition').value = '';
                 document.getElementById('form-completeness').value = '';
+                document.getElementById('form-ownerPhone').value = state.role === 'seller' ? state.session.phone : CONFIG.whatsappNumber;
+                document.getElementById('form-region').value = '';
             }
+
+            state.formRegionAdding = false;
+            closeFormRegionDropdown();
+            renderFormRegionOptions();
+
+            // Nomor pemilik terkunci untuk penjual (produk otomatis terhubung ke akun mereka)
+            const ownerPhoneInput = document.getElementById('form-ownerPhone');
+            const ownerPhoneHint = document.getElementById('form-ownerphone-hint');
+            if (state.role === 'seller') {
+                ownerPhoneInput.readOnly = true;
+                ownerPhoneInput.classList.add('opacity-60', 'cursor-not-allowed');
+                ownerPhoneHint.innerText = 'Nomor ini terkunci sesuai akun Anda yang sedang login.';
+            } else {
+                ownerPhoneInput.readOnly = false;
+                ownerPhoneInput.classList.remove('opacity-60', 'cursor-not-allowed');
+                ownerPhoneHint.innerText = 'Nomor ini menjadi kontak WhatsApp pembeli untuk produk ini.';
+            }
+
             renderFormImagePreviews();
             lucide.createIcons();
         }
@@ -1365,10 +2036,18 @@
 
         function editProduct(id) {
             const product = state.products.find(p => p.id === id);
-            if (product) openProductForm(product);
+            if (!product) return;
+            if (state.role === 'seller' && product.ownerPhone !== state.session.phone) {
+                return Swal.fire({ title: 'Akses Ditolak', text: 'Anda hanya bisa mengedit produk milik Anda sendiri.', icon: 'error', background: '#070c19', color: '#fff' });
+            }
+            openProductForm(product);
         }
 
         async function deleteProduct(id) {
+            const productToDelete = state.products.find(p => p.id === id);
+            if (state.role === 'seller' && productToDelete && productToDelete.ownerPhone !== state.session.phone) {
+                return Swal.fire({ title: 'Akses Ditolak', text: 'Anda hanya bisa menghapus produk milik Anda sendiri.', icon: 'error', background: '#070c19', color: '#fff' });
+            }
             const result = await Swal.fire({
                 title: 'Hapus Produk?',
                 text: "Data yang dihapus tidak bisa dikembalikan!",
@@ -1382,7 +2061,7 @@
             if (result.isConfirmed) {
                 Swal.showLoading();
                 try {
-                    await pushToDatabase('delete', { productId: id });
+                    await pushToDatabase('delete', { productId: id, requesterPhone: state.session.phone || null, requesterRole: state.role });
                     state.products = state.products.filter(p => p.id !== id);
                     renderAdminTable();
                     renderStorefront();
@@ -1471,10 +2150,16 @@
                 // 2. Susun data produk
                 const conditionValue = document.getElementById('form-condition').value.trim();
                 const completenessValue = document.getElementById('form-completeness').value.trim();
+
+                // Nomor pemilik produk: dipaksa ke nomor akun yang login jika penjual (bukan admin)
+                let ownerPhone = normalizePhone(document.getElementById('form-ownerPhone').value || CONFIG.whatsappNumber);
+                if (state.role === 'seller') ownerPhone = state.session.phone;
+
                 const productData = {
                     id: document.getElementById('form-id').value || generateId(),
                     name: name,
                     category: document.getElementById('form-category').value,
+                    region: document.getElementById('form-region').value || '',
                     price: price,
                     originalPrice: document.getElementById('form-originalPrice').value,
                     description: document.getElementById('form-description').value,
@@ -1484,11 +2169,13 @@
                     condition: conditionValue,
                     completeness: completenessValue,
                     status: document.getElementById('form-status').value,
-                    images: finalImageUrls
+                    images: finalImageUrls,
+                    ownerPhone: ownerPhone,        // Nomor WhatsApp pemilik/pembuat produk
+                    contactNumber: ownerPhone       // Nomor kontak yang dipakai di form nego WhatsApp
                 };
 
                 // 3. Kirim ke Google Sheets
-                await pushToDatabase('save', { product: productData, ...productData });
+                await pushToDatabase('save', { product: productData, ...productData, requesterPhone: state.session.phone || null, requesterRole: state.role });
 
                 // 4. Update state lokal
                 const existingIndex = state.products.findIndex(p => p.id === productData.id);
@@ -1515,7 +2202,10 @@
 
         // --- 16. INITIALIZATION ---
         window.addEventListener('DOMContentLoaded', () => {
+            loadSession();
+            renderAccountArea();
             fetchCategories();
+            fetchRegions();
             fetchProducts();
         });
     </script>
