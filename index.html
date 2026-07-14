@@ -269,8 +269,22 @@
 
                 <!-- Product Catalog Grid -->
                 <section class="pb-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
-                    <div class="flex items-center justify-between mb-6 sm:mb-8 border-b border-white/10 pb-4">
+                    <div class="flex items-center justify-between mb-6 sm:mb-8 border-b border-white/10 pb-4 gap-3">
                         <h2 class="font-jakarta text-xl sm:text-2xl font-bold text-white">Katalog Produk Terbaru</h2>
+
+                        <!-- Custom Sort Dropdown (selaras desain dengan dropdown kategori) -->
+                        <div class="relative w-44 sm:w-56" id="sort-dropdown-wrapper">
+                            <button type="button" onclick="toggleSortDropdown()" id="sort-dropdown-btn" class="w-full flex items-center justify-between glass-panel text-white text-sm font-semibold pl-4 sm:pl-5 pr-3 sm:pr-4 py-2.5 sm:py-3 rounded-full focus:outline-none hover:bg-white/10 hover:border-rdncyan/30 transition-all">
+                                <span class="flex items-center gap-2 min-w-0">
+                                    <i data-lucide="arrow-up-down" class="w-3.5 h-3.5 text-rdncyan shrink-0"></i>
+                                    <span id="sort-dropdown-label" class="truncate">Terbaru</span>
+                                </span>
+                                <svg id="sort-dropdown-chevron" class="w-4 h-4 text-rdncyan shrink-0 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                            </button>
+                            <div id="sort-dropdown-panel" class="hide absolute right-0 left-auto mt-2 dropdown-panel-solid rounded-2xl p-1.5 z-40 shadow-2xl fade-enter min-w-[11rem]">
+                                <!-- Opsi urutan dirender otomatis via JS -->
+                            </div>
+                        </div>
                     </div>
 
                     <div id="product-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
@@ -755,6 +769,7 @@
             formRegionAdding: false, // true saat kotak input "Masukkan Wilayah" sedang terbuka di dropdown form
             currentFilter: 'semua',
             searchQuery: '',
+            sortOrder: 'default', // 'default' | 'price-asc' (termurah) | 'price-desc' (termahal)
             currentDetailId: null,
             formImages: [],       // Gambar produk yang sedang diedit di form (string URL atau object pending)
             pendingUploadFiles: [], // File yang siap diupload ke Cloudinary
@@ -891,6 +906,7 @@
                 state.categories = [...DEFAULT_CATEGORIES];
             }
             renderCategoryFilterDropdown();
+            renderSortDropdown();
             renderCategoryFormOptions();
             renderCategoryManagerList();
         }
@@ -1028,6 +1044,50 @@
             state.searchQuery = value.trim().toLowerCase();
             document.getElementById('search-clear-btn').classList.toggle('hide', !state.searchQuery);
             renderStorefront();
+        }
+
+        // Dipanggil saat user memilih urutan harga (Termurah/Termahal/Terbaru) di dropdown katalog
+        const SORT_OPTIONS = [
+            { id: 'default', label: 'Terbaru', icon: 'clock' },
+            { id: 'price-asc', label: 'Harga: Termurah', icon: 'arrow-up' },
+            { id: 'price-desc', label: 'Harga: Termahal', icon: 'arrow-down' }
+        ];
+
+        function selectSortOrder(value) {
+            state.sortOrder = value;
+            document.getElementById('sort-dropdown-panel')?.classList.add('hide');
+            document.getElementById('sort-dropdown-chevron')?.classList.remove('rotate-180');
+            renderSortDropdown();
+            renderStorefront();
+        }
+
+        function toggleSortDropdown() {
+            document.getElementById('sort-dropdown-panel')?.classList.toggle('hide');
+            document.getElementById('sort-dropdown-chevron')?.classList.toggle('rotate-180');
+        }
+
+        // Isi dropdown urutan harga di beranda (versi kustom, selaras dengan desain glassmorphism)
+        function renderSortDropdown() {
+            const panel = document.getElementById('sort-dropdown-panel');
+            if (!panel) return;
+
+            panel.innerHTML = SORT_OPTIONS.map(opt => {
+                const isActive = state.sortOrder === opt.id;
+                return `
+                    <button type="button" onclick="selectSortOrder('${opt.id}')" class="w-full flex items-center gap-2.5 px-4 py-2.5 rounded-xl text-sm text-left transition-colors ${isActive ? 'bg-white/[0.08] text-white font-semibold ring-1 ring-white/10' : 'text-gray-200 hover:bg-white/[0.08] hover:text-white'}">
+                        <i data-lucide="${opt.icon}" class="w-3.5 h-3.5 text-rdncyan shrink-0"></i>
+                        <span class="flex-1 truncate">${opt.label}</span>
+                        ${isActive ? '<i data-lucide="check" class="w-4 h-4 text-rdncyan shrink-0"></i>' : ''}
+                    </button>
+                `;
+            }).join('');
+
+            const labelEl = document.getElementById('sort-dropdown-label');
+            if (labelEl) {
+                const current = SORT_OPTIONS.find(o => o.id === state.sortOrder);
+                labelEl.textContent = current ? current.label : 'Terbaru';
+            }
+            lucide.createIcons();
         }
         function clearSearchInput() {
             document.getElementById('search-input').value = '';
@@ -1209,6 +1269,19 @@
                 if (!state.searchQuery) return true;
                 const haystack = `${p.name || ''} ${p.description || ''} ${p.specs || ''} ${getCategoryLabel(p.category) || ''}`.toLowerCase();
                 return haystack.includes(state.searchQuery);
+            });
+
+            // Urutkan: produk "sold" SELALU didorong ke paling bawah, apa pun urutan harga yang dipilih.
+            // Di antara produk yang statusnya sama (sold-sold atau available-available), baru diurutkan
+            // berdasarkan harga sesuai pilihan dropdown (atau dibiarkan urutan aslinya jika "Terbaru").
+            filtered.sort((a, b) => {
+                const aSold = a.status === 'sold';
+                const bSold = b.status === 'sold';
+                if (aSold !== bSold) return aSold ? 1 : -1;
+
+                if (state.sortOrder === 'price-asc') return (parseInt(a.price) || 0) - (parseInt(b.price) || 0);
+                if (state.sortOrder === 'price-desc') return (parseInt(b.price) || 0) - (parseInt(a.price) || 0);
+                return 0; // "Terbaru": biarkan urutan asli (Array.sort di JS modern stabil)
             });
 
             if (filtered.length === 0) {
@@ -1834,6 +1907,11 @@
             if (catWrapper && !catWrapper.contains(e.target)) {
                 document.getElementById('category-dropdown-panel')?.classList.add('hide');
                 document.getElementById('category-dropdown-chevron')?.classList.remove('rotate-180');
+            }
+            const sortWrapper = document.getElementById('sort-dropdown-wrapper');
+            if (sortWrapper && !sortWrapper.contains(e.target)) {
+                document.getElementById('sort-dropdown-panel')?.classList.add('hide');
+                document.getElementById('sort-dropdown-chevron')?.classList.remove('rotate-180');
             }
             const regionWrapper = document.getElementById('form-region-wrapper');
             if (regionWrapper && !regionWrapper.contains(e.target)) {
