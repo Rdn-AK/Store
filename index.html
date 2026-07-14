@@ -80,6 +80,16 @@
             border-bottom: 1px solid rgba(255, 255, 255, 0.05);
         }
 
+        /* Panel dropdown dengan bg lebih gelap & pekat agar teks kategori lebih kontras,
+           tetap selaras dengan gaya glassmorphism (blur + border tipis) */
+        .dropdown-panel-solid {
+            background: linear-gradient(180deg, rgba(9, 14, 28, 0.97) 0%, rgba(5, 9, 20, 0.98) 100%);
+            backdrop-filter: blur(20px) saturate(140%);
+            -webkit-backdrop-filter: blur(20px) saturate(140%);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 20px 45px -12px rgba(0, 0, 0, 0.65), 0 0 0 1px rgba(255, 255, 255, 0.02) inset;
+        }
+
         /* Abstract Glow Backgrounds */
         .glow-orb {
             position: absolute;
@@ -249,7 +259,7 @@
                                     </span>
                                     <svg id="category-dropdown-chevron" class="w-4 h-4 text-rdncyan shrink-0 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
                                 </button>
-                                <div id="category-dropdown-panel" class="hide absolute left-0 right-0 mt-2 glass-panel rounded-2xl p-1.5 z-40 shadow-2xl max-h-72 overflow-y-auto fade-enter">
+                                <div id="category-dropdown-panel" class="hide absolute left-0 right-0 mt-2 dropdown-panel-solid rounded-2xl p-1.5 z-40 shadow-2xl max-h-72 overflow-y-auto fade-enter">
                                     <!-- Opsi kategori dirender otomatis via JS -->
                                 </div>
                             </div>
@@ -303,7 +313,7 @@
 
                             <div>
                                 <label class="block text-xs sm:text-sm font-medium text-gray-300 mb-1">Pilih Produk</label>
-                                <select id="selectedProduct" required class="w-full bg-deepnavy/50 border border-white/10 rounded-xl px-4 py-3 sm:py-4 text-sm sm:text-base text-white focus:outline-none focus:border-rdncyan focus:ring-1 focus:ring-rdncyan appearance-none">
+                                <select id="selectedProduct" required onchange="updateTransactionMethodOptions(this.value)" class="w-full bg-deepnavy/50 border border-white/10 rounded-xl px-4 py-3 sm:py-4 text-sm sm:text-base text-white focus:outline-none focus:border-rdncyan focus:ring-1 focus:ring-rdncyan appearance-none">
                                     <option value="" disabled selected>Pilih unit yang diminati</option>
                                 </select>
                             </div>
@@ -312,11 +322,7 @@
                                 <label class="block text-xs sm:text-sm font-medium text-gray-300 mb-1">Metode Transaksi</label>
                                 <select id="transactionMethod" required class="w-full bg-deepnavy/50 border border-white/10 rounded-xl px-4 py-3 sm:py-4 text-sm sm:text-base text-white focus:outline-none focus:border-rdncyan focus:ring-1 focus:ring-rdncyan appearance-none">
                                     <option value="" disabled selected>Pilih metode pengiriman/pertemuan</option>
-                                    <option value="COD Cileungsi/Cibubur">COD Area Cileungsi / Cibubur</option>
-                                    <option value="COD Jabodetabek">COD Jabodetabek (S&K Berlaku)</option>
-                                    <option value="Rekber Tokopedia">Rekber Tokopedia</option>
-                                    <option value="Rekber Shopee">Rekber Shopee</option>
-                                    <option value="Gojek/Grab">Kirim via Gojek/Grab (Instan)</option>
+                                    <!-- Opsi dirender otomatis via JS (updateTransactionMethodOptions), mengikuti wilayah produk yang dipilih -->
                                 </select>
                             </div>
 
@@ -705,14 +711,15 @@
         // --- 1. CONFIGURATION ---
         // Ganti googleSheetUrl & kredensial cloudinary sesuai akun Anda sendiri.
         const CONFIG = {
-            googleSheetUrl: 'https://script.google.com/macros/s/AKfycbzf_GAM1oaLv1m1sIwmZ7GgbBGzPtSF6M2TqnR_mCnrFCo-BHeKK2koLrbwmezBa2p3uw/exec',
+            googleSheetUrl: 'https://script.google.com/macros/s/AKfycbzs0fu4VV0FswgcN0-TPspr9jkpyUSEUM5M1jTIHnZT2ow9WzdikWpqkG3uLXXSQseuig/exec',
             cloudinary: {
                 cloudName: 'sec03zqs',
                 apiKey: '787918577271353',
-                apiSecret: 'GKkRsYio_Y3kRZ2ZbNpkzcU3fvg', // Signature dibuat aman di client-side (lihat di bawah)
+                // apiSecret TIDAK lagi disimpan di sini. Signature sekarang dibuat di server
+                // (Google Apps Script) lewat action 'cloudinarySignature' agar secret tidak bocor ke client.
             },
             whatsappNumber: '6281385869226',
-            adminPassword: 'sena2008' // Ganti password admin sesuai keinginan
+            adminPassword: '11333355555577777777' // Ganti password admin sesuai keinginan
         };
 
         // Kategori default (dipakai sebagai fallback jika sheet "Categories" kosong/gagal dimuat)
@@ -743,6 +750,7 @@
             formImages: [],       // Gambar produk yang sedang diedit di form (string URL atau object pending)
             pendingUploadFiles: [], // File yang siap diupload ke Cloudinary
             productPhoneByName: {}, // Peta nama produk -> nomor WhatsApp pemilik (untuk form nego)
+            productRegionByName: {}, // Peta nama produk -> id wilayah transaksi/pengiriman produk (untuk form nego)
             session: { phone: null, name: '' }, // Sesi akun penjual yang sedang login (tersimpan di localStorage)
             role: null // 'admin' | 'seller' | null -> menentukan hak akses saat panel dashboard dibuka
         };
@@ -774,13 +782,15 @@
 
         const generateId = () => 'prod_' + Math.random().toString(36).substr(2, 9);
 
-        // Security: Generate Cloudinary Signature client-side
-        async function generateCloudinarySignature(timestamp) {
-            const str = `timestamp=${timestamp}${CONFIG.cloudinary.apiSecret}`;
-            const msgBuffer = new TextEncoder().encode(str);
-            const hashBuffer = await crypto.subtle.digest('SHA-1', msgBuffer);
-            const hashArray = Array.from(new Uint8Array(hashBuffer));
-            return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+        // Security: Signature Cloudinary SEKARANG dibuat di server (Google Apps Script),
+        // bukan di client, supaya API Secret tidak pernah terekspos di HTML/JS.
+        // Apps Script hanya mengembalikan { signature, timestamp } yang sudah ditandatangani.
+        async function requestCloudinarySignature() {
+            const res = await pushToDatabase('cloudinarySignature', {});
+            if (!res || !res.signature || !res.timestamp) {
+                throw new Error('Gagal mendapatkan signature upload dari server.');
+            }
+            return res; // { signature, timestamp }
         }
 
         // --- 3b. AKUN PENJUAL: HELPER NOMOR & PASSWORD ---
@@ -910,8 +920,8 @@
         async function uploadImagesToCloudinary(files) {
             const uploadedUrls = [];
             for (const file of files) {
-                const timestamp = Math.round((new Date).getTime() / 1000);
-                const signature = await generateCloudinarySignature(timestamp);
+                // Timestamp & signature diambil dari Apps Script (server), bukan dibuat di client
+                const { signature, timestamp } = await requestCloudinarySignature();
 
                 const formData = new FormData();
                 formData.append('file', file);
@@ -977,7 +987,7 @@
                 const dotColor = (cat.color || 'text-rdncyan').replace('text-', 'bg-');
                 const isActive = state.currentFilter === cat.id;
                 return `
-                    <button type="button" onclick="filterCategory('${cat.id}')" class="w-full flex items-center gap-2.5 px-4 py-2.5 rounded-xl text-sm text-left transition-colors ${isActive ? 'bg-white/10 text-white font-semibold' : 'text-gray-300 hover:bg-white/5 hover:text-white'}">
+                    <button type="button" onclick="filterCategory('${cat.id}')" class="w-full flex items-center gap-2.5 px-4 py-2.5 rounded-xl text-sm text-left transition-colors ${isActive ? 'bg-white/[0.08] text-white font-semibold ring-1 ring-white/10' : 'text-gray-200 hover:bg-white/[0.08] hover:text-white'}">
                         <span class="w-2 h-2 rounded-full ${dotColor} shrink-0"></span>
                         <span class="flex-1 truncate">${cat.label}</span>
                         ${isActive ? '<i data-lucide="check" class="w-4 h-4 text-rdncyan shrink-0"></i>' : ''}
@@ -1254,6 +1264,7 @@
             const currentValue = select.value;
             select.innerHTML = '<option value="" disabled selected>Pilih unit yang diminati</option>';
             state.productPhoneByName = {};
+            state.productRegionByName = {};
             state.products.forEach(product => {
                 const opt = document.createElement('option');
                 opt.value = product.name;
@@ -1261,9 +1272,40 @@
                 select.appendChild(opt);
                 // Setiap produk terhubung ke nomor WhatsApp pemiliknya masing-masing
                 state.productPhoneByName[product.name] = product.ownerPhone || product.contactNumber || CONFIG.whatsappNumber;
+                // ...dan ke wilayah transaksi/pengiriman yang diset penjual saat menambahkan produk
+                state.productRegionByName[product.name] = product.region || '';
             });
             if (currentValue) select.value = currentValue;
+            updateTransactionMethodOptions(select.value);
         }
+
+        // Isi ulang opsi "Metode Transaksi" berdasarkan wilayah transaksi/pengiriman produk yang dipilih.
+        // Opsi COD jadi spesifik sesuai wilayah produk, opsi pengiriman umum (Rekber/Kurir) tetap selalu tersedia.
+        function updateTransactionMethodOptions(productName) {
+            const select = document.getElementById('transactionMethod');
+            if (!select) return;
+            const currentValue = select.value;
+            const regionId = state.productRegionByName ? state.productRegionByName[productName] : '';
+            const regionLabel = getRegionLabel(regionId);
+
+            const options = [];
+            if (regionLabel) {
+                options.push({ value: `COD ${regionLabel}`, text: `COD Area ${regionLabel} (sesuai lokasi produk)` });
+            }
+            options.push({ value: 'Rekber Tokopedia', text: 'Rekber Tokopedia' });
+            options.push({ value: 'Rekber Shopee', text: 'Rekber Shopee' });
+            options.push({ value: 'Gojek/Grab', text: 'Kirim via Gojek/Grab (Instan, khusus satu kota)' });
+            options.push({ value: 'Kirim Luar Kota', text: 'Kirim Luar Kota (JNE/J&T, ongkir ditanggung pembeli)' });
+
+            select.innerHTML = '<option value="" disabled selected>Pilih metode pengiriman/pertemuan</option>'
+                + options.map(o => `<option value="${o.value}">${o.text}</option>`).join('');
+
+            // Pertahankan pilihan sebelumnya jika masih valid di daftar baru, jika tidak kembali ke placeholder
+            if (currentValue && options.some(o => o.value === currentValue)) {
+                select.value = currentValue;
+            }
+        }
+        
 
         // --- 7. PRODUCT DETAIL VIEW ---
         function showDetail(productId) {
@@ -1363,6 +1405,7 @@
             document.getElementById('view-home').classList.add('hidden');
             document.getElementById('view-detail').classList.remove('hidden');
             document.getElementById('selectedProduct').value = product.name;
+            updateTransactionMethodOptions(product.name);
 
             window.scrollTo({ top: 0, behavior: 'auto' });
         }
@@ -1381,6 +1424,7 @@
         function scrollToForm(productName) {
             const formSection = document.getElementById('nego-section');
             document.getElementById('selectedProduct').value = productName;
+            updateTransactionMethodOptions(productName);
             formSection.scrollIntoView({ behavior: 'smooth' });
         }
 
@@ -1888,8 +1932,10 @@
             mobileList.innerHTML = '';
 
             // Penjual (bukan admin) hanya boleh melihat & mengelola produk miliknya sendiri
+            // Dibandingkan sebagai String karena Google Sheets kadang mengembalikan nomor HP
+            // sebagai tipe Number, yang bikin perbandingan === strict gagal walau nilainya sama.
             const visibleProducts = state.role === 'seller'
-                ? state.products.filter(p => p.ownerPhone === state.session.phone)
+                ? state.products.filter(p => String(p.ownerPhone) === String(state.session.phone))
                 : state.products;
 
             if (visibleProducts.length === 0) {
@@ -2037,7 +2083,7 @@
         function editProduct(id) {
             const product = state.products.find(p => p.id === id);
             if (!product) return;
-            if (state.role === 'seller' && product.ownerPhone !== state.session.phone) {
+            if (state.role === 'seller' && String(product.ownerPhone) !== String(state.session.phone)) {
                 return Swal.fire({ title: 'Akses Ditolak', text: 'Anda hanya bisa mengedit produk milik Anda sendiri.', icon: 'error', background: '#070c19', color: '#fff' });
             }
             openProductForm(product);
@@ -2045,7 +2091,7 @@
 
         async function deleteProduct(id) {
             const productToDelete = state.products.find(p => p.id === id);
-            if (state.role === 'seller' && productToDelete && productToDelete.ownerPhone !== state.session.phone) {
+            if (state.role === 'seller' && productToDelete && String(productToDelete.ownerPhone) !== String(state.session.phone)) {
                 return Swal.fire({ title: 'Akses Ditolak', text: 'Anda hanya bisa menghapus produk milik Anda sendiri.', icon: 'error', background: '#070c19', color: '#fff' });
             }
             const result = await Swal.fire({
